@@ -5,8 +5,13 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from .models import User, Subscription
 from datetime import date
+from django.http import JsonResponse
+import json
+from datetime import date, timedelta
 
 # --- دالة تسجيل الدخول ---
+
+
 def login_view(request):
     error_message = None
     if request.method == 'POST':
@@ -35,6 +40,8 @@ def login_view(request):
     return render(request, 'login.html', context)
 
 # --- دالة لوحة التحكم ---
+
+
 @login_required
 def dashboard_view(request):
     user = request.user
@@ -54,11 +61,15 @@ def dashboard_view(request):
     return render(request, 'dashboard.html', context)
 
 # --- دالة تسجيل الخروج ---
+
+
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 # --- دالة تسجيل حساب جديد ---
+
+
 def register_view(request):
     error_message = None
     success_message = None
@@ -74,15 +85,19 @@ def register_view(request):
         elif User.objects.filter(email=email_data).exists():
             error_message = 'هذا البريد الإلكتروني مسجل بالفعل.'
         else:
-            user = User.objects.create_user(username=username_data, email=email_data, password=password_data)
+            user = User.objects.create_user(
+                username=username_data, email=email_data, password=password_data)
             user.is_active = False
             user.save()
             Subscription.objects.create(user=user, is_active=False)
             success_message = 'تم إنشاء حسابك بنجاح. يرجى التواصل مع مدير النظام لتفعيله.'
-    context = {'error_message': error_message, 'success_message': success_message}
+    context = {'error_message': error_message,
+               'success_message': success_message}
     return render(request, 'register.html', context)
 
 # --- دالة إدارة المستخدمين ---
+
+
 @login_required
 def manage_users_view(request):
     if not request.user.groups.filter(name='مدراء النظام').exists():
@@ -94,6 +109,8 @@ def manage_users_view(request):
     return render(request, 'manage_users.html', context)
 
 # --- دالة تعديل صلاحيات المستخدم ---
+
+
 @login_required
 def edit_user_permissions_view(request, user_id):
     if not request.user.groups.filter(name='مدراء النظام').exists():
@@ -116,3 +133,39 @@ def edit_user_permissions_view(request, user_id):
         'top_level_pages': top_level_pages,
     }
     return render(request, 'edit_permissions.html', context)
+
+def activate_account_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        serial = data.get('serial')
+
+        try:
+            # نبحث عن الاشتراك المطابق للسيريال واسم المستخدم
+            subscription = Subscription.objects.get(
+                user__username=username, 
+                serial_number=serial
+            )
+
+            # نتأكد أن الاشتراك ليس فعالاً بالفعل
+            if subscription.is_active:
+                return JsonResponse({'status': 'error', 'message': 'هذا الحساب مفعل بالفعل.'})
+
+            # كل شيء صحيح، نقوم بالتفعيل
+            subscription.is_active = True
+            subscription.start_date = date.today()
+            subscription.end_date = date.today() + timedelta(days=365)
+            subscription.save()
+
+            # نقوم بتفعيل حساب المستخدم أيضاً
+            subscription.user.is_active = True
+            subscription.user.save()
+
+            return JsonResponse({'status': 'success', 'message': 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.'})
+
+        except Subscription.DoesNotExist:
+            # إذا لم يتم العثور على اشتراك مطابق
+            return JsonResponse({'status': 'error', 'message': 'اسم المستخدم أو السيريال نمبر غير صحيح.'})
+
+    # إذا كان الطلب ليس POST، نرجع خطأ
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})

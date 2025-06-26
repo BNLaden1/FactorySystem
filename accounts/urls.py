@@ -23,5 +23,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('manage-users/', views.manage_users_view, name='manage_users'),
-    path('user/<int:user_id>/edit-permissions/', views.edit_user_permissions_view, name='edit_user_permissions'),
+    path('user/<int:user_id>/edit-permissions/',
+         views.edit_user_permissions_view, name='edit_user_permissions'),
+    path('activate-account/', views.activate_account_view,
+         name='activate_account'),  # <-- السطر الجديد
+
 ]
