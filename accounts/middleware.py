@@ -6,7 +6,7 @@ class LoginRequiredMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         # (1) الآن نسجل فقط "أسماء" الصفحات المسموح بها
-        self.allowed_url_names = ['login', 'register', 'logout']
+        self.allowed_url_names = ['login', 'register', 'logout', 'activate_account']
 
     def __call__(self, request):
         # نستثني لوحة تحكم الأدمن من هذه الحماية

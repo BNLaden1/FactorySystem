@@ -1,23 +1,20 @@
-from .models import SystemPage
+from accounts.models import SystemPage
 
 def sidebar_permissions(request):
-    # إذا لم يكن المستخدم مسجل دخوله، لا نعرض له أي صلاحيات
     if not request.user.is_authenticated:
         return {}
 
-    # (1) نحصل على الصلاحيات المباشرة المعطاة للمستخدم
-    direct_pages = request.user.direct_permissions.all()
+    # جلب كل الصلاحيات الرئيسية (التي ليس لها أب)
+    main_pages = SystemPage.objects.filter(parent__isnull=True).order_by('id')
 
-    # (2) نحصل على المجموعات التي ينتمي إليها المستخدم
+    # فلترة الصفحات التي يملكها المستخدم مباشرة أو عبر المجموعات
     user_groups = request.user.groups.all()
-    
-    # (3) نحصل على الصلاحيات التي تأتي من خلال هذه المجموعات
-    group_pages = SystemPage.objects.filter(allowed_groups__in=user_groups)
-    
-    # (4) ندمج كل الصلاحيات معاً (من مباشرة ومن المجموعات) ونزيل التكرار
-    accessible_pages_all = (direct_pages | group_pages).filter(parent__isnull=True).distinct().order_by('id')
+    direct_pages = request.user.direct_permissions.filter(parent__isnull=True)
+    group_pages = main_pages.filter(allowed_groups__in=user_groups)
 
-    # (5) نرسل القائمة النهائية للواجهة
+    # دمج كل الصلاحيات بدون تكرار
+    accessible_pages = (direct_pages | group_pages).distinct()
+
     return {
-        'accessible_pages': accessible_pages_all
+        'accessible_pages': accessible_pages
     }

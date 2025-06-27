@@ -4,20 +4,28 @@ from .models import User, Subscription, SystemPage
 
 # --- واجهة مخصصة لموديل User ---
 class CustomUserAdmin(UserAdmin):
-    # هذا يخص موديل User فقط ويحسن شكل اختيار الصلاحيات
     filter_horizontal = ('groups', 'user_permissions', 'direct_permissions')
-    
-    # هذا يضيف قسم "الصلاحيات المباشرة" في صفحة تعديل المستخدم
     fieldsets = UserAdmin.fieldsets + (
         ("صلاحيات مخصصة", {'fields': ('direct_permissions',)}),
     )
     list_display = ('username', 'email', 'is_active', 'is_staff')
     list_filter = ('is_active', 'is_staff', 'groups')
 
-# --- واجهة مخصصة لموديل SystemPage ---
+# --- (!!!) واجهة صلاحيات النظام المحدثة والاحترافية (التي أرسلتها أنت) (!!!) ---
 class SystemPageAdmin(admin.ModelAdmin):
-    # هنا نعرض فقط الحقول التي تنتمي لموديل SystemPage
+    # هذا الحقل هو الذي يجعل اختيار المجموعات سهلاً
     filter_horizontal = ('allowed_groups',)
+
+    # هذا الحقل سيقسم الصفحة وينظمها ويضيف نصاً توضيحياً
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'url_name', 'icon_name', 'parent')
+        }),
+        ('الصلاحيات', {
+            'fields': ('allowed_groups',),
+            'description': 'اختر المجموعات التي يمكنها رؤية هذه الصفحة أو الأيقونة. سيتم تطبيق الصلاحية على كل المستخدمين داخل المجموعة المختارة.'
+        }),
+    )
     list_display = ('__str__', 'url_name')
     list_filter = ('parent',)
     search_fields = ('name',)
@@ -29,7 +37,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
 
 # --- التسجيل النهائي ---
-# نتأكد من أننا نسجل كل موديل مع الواجهة الصحيحة الخاصة به
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(SystemPage, SystemPageAdmin)
