@@ -48,4 +48,9 @@ urlpatterns = [
     path('update-profile/', views.update_company_profile_view,
          name='update_profile'),  # <-- السطر الجديد
 
+    # --- روابط إدارة الاشتراكات ---
+    path('manage-subscriptions/', views.manage_subscriptions_view,
+         name='manage_subscriptions'),
+    path('subscription/<int:sub_id>/activate/',
+         views.activate_subscription_view, name='activate_subscription'),
 ]

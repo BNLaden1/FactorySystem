@@ -1,30 +1,34 @@
 from accounts.models import SystemPage
 
 def sidebar_permissions(request):
-    """
-    هذا المعالج يجعل قائمة الصفحات المتاحة للمستخدم
-    متوفرة في كل قوالب المشروع.
-    """
-    # إذا لم يكن المستخدم مسجل دخوله، لا نعرض له أي صلاحيات
-    if not request.user.is_authenticated:
-        return {}
-
-    accessible_pages = []
-    
-    # نحصل على كل الصلاحيات الرئيسية (التي ليس لها أب)
-    main_pages = SystemPage.objects.filter(parent__isnull=True).order_by('id')
-    
-    for page in main_pages:
-        # نتحقق من الصلاحيات المباشرة للمستخدم
-        has_direct_permission = request.user.direct_permissions.filter(id=page.id).exists()
-        
-        # نتحقق من الصلاحيات الموروثة من المجموعات
-        has_group_permission = page.allowed_groups.filter(id__in=request.user.groups.all()).exists()
-
-        # إذا كان يملك أي نوع من الصلاحية، نعرض له الصفحة
-        if has_direct_permission or has_group_permission or request.user.is_superuser:
-            accessible_pages.append(page)
-
-    return {
-        'accessible_pages': accessible_pages
+    # ننشئ قاموساً فارغاً للبدء
+    context = {
+        'accessible_pages': []
     }
+
+    # نتأكد من أن المستخدم مسجل دخوله، وإلا لن يحصل على أي صلاحيات
+    if request.user.is_authenticated:
+        
+        # الحالة الأولى: إذا كان المستخدم سوبر يوزر، أعطه كل الصلاحيات الرئيسية
+        if request.user.is_superuser:
+            accessible_pages = SystemPage.objects.filter(parent__isnull=True).order_by('id')
+        else:
+            # إذا كان مستخدماً عادياً
+            user_groups = request.user.groups.all()
+            
+            # الصلاحيات المباشرة المعطاة للمستخدم
+            direct_pages = request.user.direct_permissions.filter(parent__isnull=True)
+            
+            # الصلاحيات الموروثة من المجموعات
+            group_pages = SystemPage.objects.filter(allowed_groups__in=user_groups, parent__isnull=True)
+            
+            # ندمج كل الصلاحيات بدون تكرار
+            accessible_pages = (direct_pages | group_pages).distinct().order_by('id')
+        
+        # نقوم بطباعة النتيجة في الـ Terminal لنتأكد منها
+        print(f"--- DEBUG: User '{request.user.username}' has access to: {list(accessible_pages)} ---")
+
+        # نضع القائمة النهائية في الـ context
+        context['accessible_pages'] = accessible_pages
+
+    return context
