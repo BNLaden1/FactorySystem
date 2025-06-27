@@ -1,19 +1,29 @@
 from accounts.models import SystemPage
 
 def sidebar_permissions(request):
+    """
+    هذا المعالج يجعل قائمة الصفحات المتاحة للمستخدم
+    متوفرة في كل قوالب المشروع.
+    """
+    # إذا لم يكن المستخدم مسجل دخوله، لا نعرض له أي صلاحيات
     if not request.user.is_authenticated:
         return {}
 
-    # جلب كل الصلاحيات الرئيسية (التي ليس لها أب)
+    accessible_pages = []
+    
+    # نحصل على كل الصلاحيات الرئيسية (التي ليس لها أب)
     main_pages = SystemPage.objects.filter(parent__isnull=True).order_by('id')
+    
+    for page in main_pages:
+        # نتحقق من الصلاحيات المباشرة للمستخدم
+        has_direct_permission = request.user.direct_permissions.filter(id=page.id).exists()
+        
+        # نتحقق من الصلاحيات الموروثة من المجموعات
+        has_group_permission = page.allowed_groups.filter(id__in=request.user.groups.all()).exists()
 
-    # فلترة الصفحات التي يملكها المستخدم مباشرة أو عبر المجموعات
-    user_groups = request.user.groups.all()
-    direct_pages = request.user.direct_permissions.filter(parent__isnull=True)
-    group_pages = main_pages.filter(allowed_groups__in=user_groups)
-
-    # دمج كل الصلاحيات بدون تكرار
-    accessible_pages = (direct_pages | group_pages).distinct()
+        # إذا كان يملك أي نوع من الصلاحية، نعرض له الصفحة
+        if has_direct_permission or has_group_permission or request.user.is_superuser:
+            accessible_pages.append(page)
 
     return {
         'accessible_pages': accessible_pages

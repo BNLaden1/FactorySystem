@@ -77,11 +77,12 @@
                     <li>
                         <a href="{% url page.url_name %}"
                             class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-200">
-                            <i data-lucide="{{ page.icon_name }}" class="w-5 h-5"></i>
+                            <i data-lucide="{{ page.icon_name|default:'circle' }}" class="w-5 h-5"></i>
                             <span class="sidebar-text ml-4 mr-4">{{ page.name }}</span>
                         </a>
                     </li>
                     {% endfor %}
+
                 </ul>
             </nav>
             <div class="border-t p-2">
