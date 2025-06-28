@@ -1,175 +1,137 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - نظام المصنع</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-    </style>
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
 </head>
-
 <body class="bg-slate-100 flex items-center justify-center h-screen">
-
     <div class="w-full max-w-md">
-
         <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg">
-
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-slate-800">تسجيل الدخول</h1>
-                <p class="text-slate-500 mt-2">مرحباً بك مجدداً في نظام المصنع </p>
+                <p class="text-slate-500 mt-2">مرحباً بك مجدداً</p>
             </div>
-
-            {% if error_message %}
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-4 mb-6 rounded-lg" role="alert">
-                <p class="font-bold">حدث خطأ</p>
-                <p class="text-sm">{{ error_message }}</p>
-
-                {% if "التواصل" in error_message %}
-                <hr class="my-2 border-red-300">
-                <div class="text-sm space-y-1 mt-2">
-                    <div class="flex items-center">
-                        <p class="ml-2">&#128100;</p> <span>م/ محمد أبوالعلا</span>
-                    </div>
-                    <div class="flex items-center">
-                        <p class="ml-2">&#128242;</p> <a href="https://wa.me/201023999283" target="_blank"
-                            class="text-blue-600 hover:underline">01023999283</a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <form method="POST" action="{% url 'login' %}">
+            <div id="login-message" class="mb-4 text-center text-red-600 font-bold" style="min-height: 1.5rem;"></div>
+            <form id="login-form">
                 {% csrf_token %}
                 <div class="space-y-6">
-                    <div>
-                        <label for="username" class="block text-sm font-medium text-slate-700 mb-1">اسم المستخدم</label>
-                        <input type="text" name="username" id="username"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
-                            required>
-                    </div>
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-slate-700 mb-1">كلمة المرور</label>
-                        <input type="password" name="password" id="password"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
-                            required>
-                    </div>
+                    <label for="username" class="sr-only">اسم المستخدم</label>
+                    <input type="text" name="username" id="username" placeholder="اسم المستخدم" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg" required>
+                    <label for="password" class="sr-only">كلمة المرور</label>
+                    <input type="password" name="password" id="password" placeholder="كلمة المرور" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg" required>
                 </div>
-
                 <div class="mt-8 grid grid-cols-2 gap-4">
-                    <button type="submit"
-                        class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        دخـــول
-                    </button>
-                    <button type="button" id="open-activation-popup"
-                        class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
-                        تفعيل الحساب
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">دخـــول</button>
+                    <button type="button" id="open-activation-popup" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700">تفعيل الحساب</button>
                 </div>
             </form>
-
         </div>
-        <p class="text-center text-xs text-slate-500 mt-4">
-            جميع الحقوق محفوظة &copy; {% now "Y" %}
-        </p>
     </div>
-
-    <div id="activation-popup"
-        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-        <div class="bg-navy-dark p-8 rounded-2xl shadow-2xl w-full max-w-sm relative border-4 border-pink-500"
-            style="background-color: #0d1b2a;">
-
-            <button id="close-activation-popup"
-                class="absolute top-4 left-4 text-gray-400 hover:text-white">&times;</button>
-
-            <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-24 h-1.5 bg-pink-500 rounded-full"></div>
-            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1.5 bg-pink-500 rounded-full"></div>
-
+    <div id="activation-popup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl w-full max-w-sm relative">
+            <button id="close-activation-popup" class="absolute top-4 left-4 text-gray-400 hover:text-white text-2xl">&times;</button>
             <h2 class="text-white text-2xl font-bold text-center mb-6">تفعيل الاشتراك</h2>
-
             <form id="activation-form">
-                <div id="activation-message" class="mb-4 text-center"></div>
-
-
+                <div id="activation-message" class="mb-4 text-center font-bold" style="min-height: 1.5rem;"></div>
                 <div class="space-y-5">
-                    <div>
-                        <label for="activation_username" class="block text-sm font-medium text-gray-300 mb-1">اسم
-                            المستخدم</label>
-                        <input type="text" name="activation_username" id="activation_username"
-                            class="w-full px-4 py-2.5 bg-slate-800 text-white border border-slate-600 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                    </div>
-                    <div>
-                        <label for="serial_number" class="block text-sm font-medium text-gray-300 mb-1">السيريال
-                            نمبر</label>
-                        <input type="text" name="serial_number" id="serial_number"
-                            class="w-full px-4 py-2.5 bg-slate-800 text-white border border-slate-600 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                    </div>
+                    <input type="text" id="activation_username" placeholder="اسم المستخدم" class="w-full px-4 py-2.5 bg-slate-800 text-white border border-slate-600 rounded-lg">
+                    <input type="text" id="serial_number" placeholder="السيريال نمبر" class="w-full px-4 py-2.5 bg-slate-800 text-white border border-slate-600 rounded-lg">
                 </div>
-                <div class="mt-8">
-                    <button type="submit"
-                        class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 transition-colors">
-                        تــأكيـــد التفعيــل
-                    </button>
-                </div>
+                <div class="mt-8"><button type="submit" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700">تأكيـــد التفعيــل</button></div>
             </form>
         </div>
     </div>
+<script>
+    // ==========================================================
+    // الكود النهائي والمفصل لإرسال واستقبال بيانات تسجيل الدخول
+    // ==========================================================
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+        // 1. منع الفورم من تحديث الصفحة
+        event.preventDefault();
+        
+        const messageDiv = document.getElementById('login-message');
+        messageDiv.textContent = ''; // مسح أي رسالة خطأ قديمة
 
-   <script>
-    // --- الكود الخاص بالنافذة المنبثقة ---
-    const openBtn = document.getElementById('open-activation-popup');
-    const closeBtn = document.getElementById('close-activation-popup');
-    const popup = document.getElementById('activation-popup');
+        // 2. تجميع البيانات من حقول الإدخال
+        const formData = {
+            username: this.username.value,
+            password: this.password.value,
+        };
 
-    openBtn.addEventListener('click', () => {
-        popup.classList.remove('hidden');
-    });
-
-    closeBtn.addEventListener('click', () => {
-        popup.classList.add('hidden');
-    });
-
-    // --- الكود الجديد الخاص بإرسال بيانات التفعيل ---
-    const activationForm = document.getElementById('activation-form');
-    const activationMessageDiv = document.getElementById('activation-message');
-
-    activationForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // منع تحديث الصفحة
-
-        const username = document.getElementById('activation_username').value;
-        const serial = document.getElementById('serial_number').value;
-
-        // إرسال البيانات للسيرفر في الخلفية
-        fetch("{% url 'activate_account' %}", {
+        // 3. إرسال البيانات إلى السيرفر بصيغة JSON
+        fetch("{% url 'login' %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}' // مهم جداً للحماية
+                'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value
             },
-            body: JSON.stringify({
-                username: username,
-                serial: serial
-            })
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            // التأكد من أن الرد هو JSON قبل محاولة تحليله
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                throw new TypeError("الرد من السيرفر ليس بصيغة JSON!");
+            }
+        })
+        .then(data => {
+            // 4. التعامل مع الرد بعد تحليله بنجاح
+            console.log("الرد من السيرفر:", data); // لغرض التجربة
+            if (data.success) {
+                // إذا كان تسجيل الدخول ناجحاً، يتم توجيه المستخدم
+                window.location.href = data.redirect_url;
+            } else {
+                // إذا فشل، يتم عرض رسالة الخطأ
+                messageDiv.textContent = data.message;
+            }
+        })
+        .catch(error => {
+            // في حالة وجود أي خطأ في الشبكة أو في تحليل الـ JSON
+            messageDiv.textContent = 'حدث خطأ غير متوقع. يرجى مراجعة الـ console.';
+            console.error('Error:', error);
+        });
+    });
+
+    // ==================================================
+    // كود نافذة التفعيل (يعمل بنفس الطريقة)
+    // ==================================================
+    const openBtn = document.getElementById('open-activation-popup');
+    const closeBtn = document.getElementById('close-activation-popup');
+    const popup = document.getElementById('activation-popup');
+    openBtn.addEventListener('click', () => popup.classList.remove('hidden'));
+    closeBtn.addEventListener('click', () => popup.classList.add('hidden'));
+
+    document.getElementById('activation-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const messageDiv = document.getElementById('activation-message');
+        messageDiv.textContent = '';
+        const formData = {
+            username: document.getElementById('activation_username').value,
+            serial_number: document.getElementById('serial_number').value,
+        };
+        fetch("{% url 'activate_account' %}", {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': document.querySelector('#login-form [name=csrfmiddlewaretoken]').value 
+            },
+            body: JSON.stringify(formData)
         })
         .then(response => response.json())
         .then(data => {
-            // عرض رسالة الرد من السيرفر
-            if (data.status === 'success') {
-                activationMessageDiv.innerHTML = `<p class="text-green-400 font-bold">${data.message}</p>`;
-            } else {
-                activationMessageDiv.innerHTML = `<p class="text-red-400 font-bold">${data.message}</p>`;
-            }
+            messageDiv.className = data.success ? 'mb-4 text-center font-bold text-green-400' : 'mb-4 text-center font-bold text-red-400';
+            messageDiv.textContent = data.message;
         });
     });
 </script>
+
+
 </body>
 
 </html>

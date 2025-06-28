@@ -19,10 +19,11 @@ class CustomUserAdmin(UserAdmin):
 
 # تخصيص عرض موديل الاشتراك
 class SubscriptionAdmin(admin.ModelAdmin):
-    # تغيير 'user' إلى 'company'
-    list_display = ('company', 'is_active', 'start_date', 'end_date', 'remaining_days')
+    # تم إضافة السيريال نمبر هنا
+    list_display = ('company', 'serial_number', 'is_active', 'start_date', 'end_date', 'remaining_days')
     list_filter = ('is_active',)
     search_fields = ('company__name', 'serial_number')
+    readonly_fields = ('serial_number', 'remaining_days')
 
 # تخصيص عرض موديل ملف الشركة
 class CompanyProfileAdmin(admin.ModelAdmin):
