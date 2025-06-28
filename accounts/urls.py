@@ -25,8 +25,10 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('activate-account/', views.activate_account_view, name='activate_account'),
 
-    # --- روابط الصفحات الرئيسية من الشريط الجانبي ---
+    # --- رابط الصفحة الرئيسية ---
     path('dashboard/', views.dashboard_view, name='dashboard'),
+
+    # --- روابط الصفحات المؤقتة (قيد الإنشاء) ---
     path('sales/', views.sales_page_view, name='sales_page'),
     path('clients/', views.clients_page_view, name='clients_page'),
     path('quotes/', views.quotes_page_view, name='quotes_page'),
@@ -41,16 +43,15 @@ urlpatterns = [
     path('pos/', views.pos_page_view, name='pos_page'),
     path('settings/', views.settings_page_view, name='settings_page'),
 
-    # --- روابط إدارة المستخدمين ---
+    # --- روابط إدارة النظام (للمدير العام) ---
     path('manage-users/', views.manage_users_view, name='manage_users'),
-    path('user/<int:user_id>/edit-permissions/',
-         views.edit_user_permissions_view, name='edit_user_permissions'),
-    path('update-profile/', views.update_company_profile_view,
-         name='update_profile'),  # <-- السطر الجديد
+    path('manage-subscriptions/', views.manage_subscriptions_view, name='manage_subscriptions'),
     
-    # --- روابط إدارة الاشتراكات ---
-    path('manage-subscriptions/', views.manage_subscriptions_view,
-         name='manage_subscriptions'),
-    path('subscription/<int:sub_id>/activate/',
-         views.activate_subscription_view, name='activate_subscription'),
+    # تم تعطيل الروابط التالية مؤقتاً لأن الدوال الخاصة بها لم نقم ببنائها بعد في ملف views.py الجديد
+    # path('user/<int:user_id>/edit-permissions/',
+    #      views.edit_user_permissions_view, name='edit_user_permissions'),
+    # path('update-profile/', views.update_company_profile_view,
+    #      name='update_profile'),
+    # path('subscription/<int:sub_id>/activate/',
+    #      views.activate_subscription_view, name='activate_subscription'),
 ]

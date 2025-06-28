@@ -1,42 +1,52 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Subscription, SystemPage
+from .models import User, Company, Subscription, CompanyProfile, SystemPage
 
-# --- واجهة مخصصة لموديل User ---
+# تخصيص عرض موديل المستخدم
 class CustomUserAdmin(UserAdmin):
-    filter_horizontal = ('groups', 'user_permissions', 'direct_permissions')
+    # الحقول التي ستظهر في قائمة المستخدمين
+    list_display = ('username', 'email', 'company', 'is_staff', 'is_active')
+    # إضافة 'company' إلى الفلاتر
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'company')
     fieldsets = UserAdmin.fieldsets + (
-        ("صلاحيات مخصصة", {'fields': ('direct_permissions',)}),
+        (None, {'fields': ('company',)}),
     )
-    list_display = ('username', 'email', 'is_active', 'is_staff')
-    list_filter = ('is_active', 'is_staff', 'groups')
-
-# --- (!!!) واجهة صلاحيات النظام المحدثة والاحترافية (التي أرسلتها أنت) (!!!) ---
-class SystemPageAdmin(admin.ModelAdmin):
-    # هذا الحقل هو الذي يجعل اختيار المجموعات سهلاً
-    filter_horizontal = ('allowed_groups',)
-
-    # هذا الحقل سيقسم الصفحة وينظمها ويضيف نصاً توضيحياً
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'url_name', 'icon_name', 'parent')
-        }),
-        ('الصلاحيات', {
-            'fields': ('allowed_groups',),
-            'description': 'اختر المجموعات التي يمكنها رؤية هذه الصفحة أو الأيقونة. سيتم تطبيق الصلاحية على كل المستخدمين داخل المجموعة المختارة.'
-        }),
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (None, {'fields': ('company',)}),
     )
-    list_display = ('__str__', 'url_name')
-    list_filter = ('parent',)
+    # تحديث filter_horizontal ليشير إلى الحقول الصحيحة
+    filter_horizontal = ('groups', 'user_permissions')
+
+# تخصيص عرض موديل الاشتراك
+class SubscriptionAdmin(admin.ModelAdmin):
+    # تغيير 'user' إلى 'company'
+    list_display = ('company', 'is_active', 'start_date', 'end_date', 'remaining_days')
+    list_filter = ('is_active',)
+    search_fields = ('company__name', 'serial_number')
+
+# تخصيص عرض موديل ملف الشركة
+class CompanyProfileAdmin(admin.ModelAdmin):
+    list_display = ('company', 'country', 'classification', 'has_completed_profile')
+    list_filter = ('classification', 'has_completed_profile')
+    search_fields = ('company__name',)
+
+# تخصيص عرض موديل الشركة
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at')
     search_fields = ('name',)
 
-# --- واجهة مخصصة لموديل Subscription ---
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'serial_number', 'end_date', 'is_active')
-    list_filter = ('is_active',)
-    search_fields = ('user__username',)
+# تخصيص عرض صفحات النظام
+class SystemPageAdmin(admin.ModelAdmin):
+    # إزالة الحقول غير الموجودة 'url_name' و 'parent'
+    list_display = ('name', 'category', 'icon_class')
+    list_filter = ('category',)
+    search_fields = ('name', 'category')
+    filter_horizontal = ('allowed_groups',)
 
-# --- التسجيل النهائي ---
+
+# تسجيل المودلز مع التخصيصات الجديدة
+admin.site.register(Company, CompanyAdmin)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
+admin.site.register(CompanyProfile, CompanyProfileAdmin)
 admin.site.register(SystemPage, SystemPageAdmin)
