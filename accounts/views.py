@@ -10,7 +10,7 @@ from datetime import date, timedelta
 # (!!!) هذا هو سطر الـ import الوحيد والصحيح لكل الموديلات (!!!)
 from .models import User, Subscription, SystemPage, CompanyProfile
 
-# --- دالة تسجيل الدخول ---
+# --- دالة تسجيل الدخول (النسخة النهائية والمصححة) ---
 
 
 def login_view(request):
@@ -18,13 +18,28 @@ def login_view(request):
     if request.method == 'POST':
         username_data = request.POST.get('username')
         password_data = request.POST.get('password')
-        user = authenticate(request, username=username_data,
-                            password=password_data)
-        if user is not None:
-            if user.is_superuser:
-                login(request, user)
-                return redirect('dashboard')
-            if user.is_active:
+
+        # (1) أولاً، نحاول العثور على المستخدم بالاسم
+        try:
+            user = User.objects.get(username=username_data)
+
+            # (2) ثانياً، نتحقق من حالة الحساب (هل هو فعال؟)
+            if not user.is_active:
+                error_message = "هذا الحساب غير مفعل. يرجى التواصل مع مدير النظام لتفعيله."
+
+            # (3) ثالثاً، إذا كان فعالاً، نتحقق من كلمة المرور
+            elif not user.check_password(password_data):
+                error_message = 'اسم المستخدم أو كلمة المرور غير صحيحة.'
+
+            else:
+                # (4) إذا كان فعالاً وكلمة المرور صحيحة، نتحقق من الاشتراك
+                # ونسجل دخوله
+
+                # نسمح للسوبر يوزر بالدخول دائماً
+                if user.is_superuser:
+                    login(request, user)
+                    return redirect('dashboard')
+
                 try:
                     subscription = user.subscription
                     if subscription.is_active and (subscription.end_date is None or subscription.end_date >= date.today()):
@@ -34,12 +49,14 @@ def login_view(request):
                         error_message = "لقد انتهى اشتراكك. يرجى التواصل مع مدير النظام."
                 except Subscription.DoesNotExist:
                     error_message = "لا يوجد اشتراك مرتبط بهذا الحساب."
-            else:
-                error_message = "هذا الحساب غير مفعل."
-        else:
+
+        except User.DoesNotExist:
+            # إذا لم يتم العثور على المستخدم من الأساس
             error_message = 'اسم المستخدم أو كلمة المرور غير صحيحة.'
+
     context = {'error_message': error_message}
     return render(request, 'login.html', context)
+
 
 # --- دالة تسجيل حساب جديد ---
 
@@ -102,42 +119,42 @@ def logout_view(request):
 
 # --- الصفحات الداخلية المحمية ---
 
-
 @login_required
 def dashboard_view(request):
     user = request.user
-    subscription_days_left = 0
-    show_profile_popup = False
     company_name_display = "اسم الشركة"
+    subscription_days_left = 0
+    show_profile_popup = False # سنستخدم هذا لاحقاً للنافذة المنبثقة
 
-    # نتحقق من ملف الشركة. إذا لم يكن موجوداً، ننشئه
-    try:
-        company_profile = user.company_profile
-        if company_profile.company_name:
-            company_name_display = company_profile.company_name
-        # إذا لم يكمل بياناته من قبل، نطلب منه ذلك
-        if not company_profile.has_completed_profile:
-            show_profile_popup = True
-    except User.company_profile.RelatedObjectDoesNotExist:
-        CompanyProfile.objects.create(user=user)
+    # --- جلب بيانات ملف الشركة ---
+    # get_or_create تبحث عن الملف، إذا لم تجده تقوم بإنشائه
+    company_profile, created = CompanyProfile.objects.get_or_create(user=user)
+    
+    # إذا كان المستخدم لم يكمل بياناته، سنطلب منه ذلك لاحقاً
+    if not company_profile.has_completed_profile:
         show_profile_popup = True
+    
+    # إذا كان لديه اسم شركة مسجل، نعرضه
+    if company_profile.company_name:
+        company_name_display = company_profile.company_name
 
-    # نحسب الأيام المتبقية في الاشتراك
+    # --- جلب بيانات الاشتراك ---
     try:
         subscription = user.subscription
         if subscription.is_active and subscription.end_date:
             days_left = (subscription.end_date - date.today()).days
-            subscription_days_left = max(0, days_left)
+            subscription_days_left = max(0, days_left) # لعرض 0 بدلاً من رقم سالب
     except Subscription.DoesNotExist:
-        subscription_days_left = 0
+        subscription_days_left = 0 # إذا لم يكن له اشتراك
 
+    # --- تجهيز كل البيانات لإرسالها للواجهة ---
     context = {
         'company_name': company_name_display,
         'today_date': date.today().strftime('%d/%m/%Y'),
         'subscription_days': subscription_days_left,
         'show_profile_popup': show_profile_popup,
     }
-    return render(request, 'dashboard.html', context)
+    return render(request, 'dashboard_standalone.html', context)
 
 
 @login_required
@@ -305,6 +322,26 @@ def update_company_profile_view(request):
             profile.save()
 
             return JsonResponse({'status': 'success', 'message': 'تم حفظ البيانات بنجاح! سيتم تحديث الصفحة.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'error', 'message': 'طلب غير صالح'})
+
+
+@login_required
+def update_company_profile_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            profile = request.user.company_profile
+
+            profile.company_name = data.get('company_name', '')
+            profile.classification = data.get('classification', '')
+            profile.country = data.get('country', '')
+            profile.language = data.get('language', 'ar')
+            profile.has_completed_profile = True  # <-- أهم خطوة لمنع ظهور النافذة مرة أخرى
+            profile.save()
+
+            return JsonResponse({'status': 'success', 'message': 'تم حفظ البيانات بنجاح!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': 'طلب غير صالح'})

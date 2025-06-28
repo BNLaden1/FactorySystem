@@ -47,7 +47,7 @@ urlpatterns = [
          views.edit_user_permissions_view, name='edit_user_permissions'),
     path('update-profile/', views.update_company_profile_view,
          name='update_profile'),  # <-- السطر الجديد
-
+    
     # --- روابط إدارة الاشتراكات ---
     path('manage-subscriptions/', views.manage_subscriptions_view,
          name='manage_subscriptions'),
