@@ -100,25 +100,53 @@ def register_view(request):
     return render(request, 'accounts/register.html')
 
 # --- لوحة التحكم (النسخة النهائية والمصححة) ---
+# في ملف accounts/views.py
+
 @login_required
 def dashboard_view(request):
+    # لا تغييرات على هذا الجزء
     if not request.user.company and not request.user.is_superuser:
         messages.error(request, _("حسابك غير مرتبط بأي شركة."))
         return redirect('logout')
 
+    # المدير العام لا يحتاج لإكمال البيانات
+    if request.user.is_superuser:
+        context = {
+            'company_name': "Superuser Dashboard",
+            'today_date': date.today().strftime('%d/%m/%Y'),
+            'subscription_days': "N/A",
+            'show_profile_popup': False # المدير لا يرى النافذة
+        }
+        return render(request, 'accounts/dashboard_standalone.html', context)
+
+
+    # --- المنطق الجديد للتحقق من ملف الشركة ---
     company = request.user.company
     subscription = None
-    
-    if company:
-        try:
-            subscription = Subscription.objects.get(company=company)
-        except Subscription.DoesNotExist:
-            pass
+    profile = None
+    show_popup = False
 
+    try:
+        subscription = Subscription.objects.get(company=company)
+    except Subscription.DoesNotExist:
+        pass
+
+    try:
+        # نبحث عن ملف الشركة، وإذا لم نجده ننشئه
+        profile, created = CompanyProfile.objects.get_or_create(company=company)
+        # إذا كان ملف الشركة غير مكتمل، نرسل إشارة لإظهار النافذة
+        if not profile.has_completed_profile:
+            show_popup = True
+    except CompanyProfile.DoesNotExist:
+        # في حالة عدم وجود ملف، يجب إظهار النافذة
+        show_popup = True
+    
     context = {
-        'company_name': company.name if company else "Superuser Dashboard",
+        'company_name': company.name,
         'today_date': date.today().strftime('%d/%m/%Y'),
-        'subscription_days': subscription.remaining_days if subscription else "N/A"
+        'subscription_days': subscription.remaining_days if subscription else 0,
+        'show_profile_popup': show_popup, # المتغير الجديد للتحكم في النافذة
+        'profile': profile # نرسل البروفايل للوصول إلى بياناته في النافذة
     }
     return render(request, 'accounts/dashboard_standalone.html', context)
 
@@ -200,3 +228,26 @@ def manage_subscriptions_view(request):
     subscriptions = Subscription.objects.all()
     context = {'subscriptions_list': subscriptions} # تم تصحيح اسم المتغير
     return render(request, 'accounts/manage_subscriptions.html', context)
+
+# في نهاية ملف accounts/views.py
+
+@login_required
+def update_company_profile_view(request):
+    if request.method == 'POST':
+        try:
+            profile = CompanyProfile.objects.get(company=request.user.company)
+            data = json.loads(request.body)
+
+            profile.classification = data.get('classification')
+            profile.country = data.get('country')
+            profile.language = data.get('language')
+            profile.has_completed_profile = True # أهم خطوة لمنع ظهور النافذة مرة أخرى
+            profile.save()
+
+            return JsonResponse({'success': True, 'message': 'تم حفظ البيانات بنجاح! جاري تحديث الصفحة...'})
+        except CompanyProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'لم يتم العثور على ملف الشركة.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'حدث خطأ: {str(e)}'})
+
+    return JsonResponse({'success': False, 'message': 'طلب غير صالح.'}, status=400)

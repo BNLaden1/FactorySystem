@@ -54,4 +54,7 @@ urlpatterns = [
     #      name='update_profile'),
     # path('subscription/<int:sub_id>/activate/',
     #      views.activate_subscription_view, name='activate_subscription'),
+    
+  # --- الرابط الجديد لحفظ بيانات الشركة ---
+    path('update-profile/', views.update_company_profile_view, name='update_profile'),
 ]
