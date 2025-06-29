@@ -58,7 +58,8 @@ class SystemPage(models.Model):
     url_name = models.CharField(max_length=100, unique=True, verbose_name="اسم الرابط (من urls.py)")
     icon_class = models.CharField(max_length=50, blank=True, null=True, verbose_name="أيقونة Lucide")
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children', verbose_name="يتبع صفحة")
-    allowed_groups = models.ManyToManyField(Group, blank=True, verbose_name="المجموعات المسموح لها بالوصول")
+    allowed_groups = models.ManyToManyField(Group, blank=True, verbose_name="المجموعات المسموح لها بالوصول",
+    related_name="system_pages")
     category = models.CharField(max_length=100, default='General', verbose_name="الفئة")
     
     def __str__(self):
@@ -69,3 +70,16 @@ class SystemPage(models.Model):
         verbose_name = "صفحة نظام"
         verbose_name_plural = "4. صفحات النظام"
         ordering = ['parent__id', 'id']
+        # في نهاية ملف accounts/models.py
+
+class IPRegistrationRecord(models.Model):
+    ip_address = models.GenericIPAddressField(unique=True, verbose_name="عنوان IP")
+    company = models.OneToOneField(Company, on_delete=models.CASCADE, verbose_name="الشركة المسجلة")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="وقت التسجيل")
+
+    def __str__(self):
+        return f"{self.ip_address} - {self.company.name}"
+
+    class Meta:
+        verbose_name = "سجل تسجيل IP"
+        verbose_name_plural = "سجلات تسجيل IP"

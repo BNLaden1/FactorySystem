@@ -1,23 +1,6 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.urls import path
 from . import views
 
-# هذه القائمة الآن تحتوي على رابط لكل أيقونة في الشريط الجانبي
 urlpatterns = [
     # --- روابط الحسابات الأساسية ---
     path('login/', views.login_view, name='login'),
@@ -25,10 +8,23 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('activate-account/', views.activate_account_view, name='activate_account'),
 
-    # --- رابط الصفحة الرئيسية ---
+    # --- رابط لوحة التحكم ---
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    
+    # --- رابط تحديث ملف الشركة ---
+    path('update-profile/', views.update_company_profile_view, name='update_profile'),
 
-    # --- روابط الصفحات المؤقتة (قيد الإنشاء) ---
+    # --- روابط إدارة الموظفين ---
+    path('manage-employees/', views.manage_employees_view, name='manage_employees'),
+    path('add-employee/', views.add_employee_view, name='add_employee'),
+    path('employee/<int:employee_id>/permissions/', views.edit_employee_permissions_view, name='edit_employee_permissions'),
+    path('employee/<int:employee_id>/permissions/save/', views.save_employee_permissions_view, name='save_employee_permissions'),
+    path('employee/<int:employee_id>/delete/', views.delete_employee_view, name='delete_employee'),
+    # --- روابط الإدارة للمدير العام ---
+    path('manage-users/', views.manage_users_view, name='manage_users'),
+    path('manage-subscriptions/', views.manage_subscriptions_view, name='manage_subscriptions'),
+
+    # --- روابط الصفحات المؤقتة ---
     path('sales/', views.sales_page_view, name='sales_page'),
     path('clients/', views.clients_page_view, name='clients_page'),
     path('quotes/', views.quotes_page_view, name='quotes_page'),
@@ -42,19 +38,4 @@ urlpatterns = [
     path('reports/', views.reports_page_view, name='reports_page'),
     path('pos/', views.pos_page_view, name='pos_page'),
     path('settings/', views.settings_page_view, name='settings_page'),
-
-    # --- روابط إدارة النظام (للمدير العام) ---
-    path('manage-users/', views.manage_users_view, name='manage_users'),
-    path('manage-subscriptions/', views.manage_subscriptions_view, name='manage_subscriptions'),
-    
-    # تم تعطيل الروابط التالية مؤقتاً لأن الدوال الخاصة بها لم نقم ببنائها بعد في ملف views.py الجديد
-    # path('user/<int:user_id>/edit-permissions/',
-    #      views.edit_user_permissions_view, name='edit_user_permissions'),
-    # path('update-profile/', views.update_company_profile_view,
-    #      name='update_profile'),
-    # path('subscription/<int:sub_id>/activate/',
-    #      views.activate_subscription_view, name='activate_subscription'),
-    
-  # --- الرابط الجديد لحفظ بيانات الشركة ---
-    path('update-profile/', views.update_company_profile_view, name='update_profile'),
 ]
