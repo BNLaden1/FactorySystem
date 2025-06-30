@@ -48,35 +48,7 @@
     </div>
 </div>
 
-<div id="add-employee-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
-        <button id="close-add-modal-btn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        <h2 class="text-2xl font-bold text-slate-800 text-center mb-6">إضافة موظف جديد</h2>
-        <form id="add-employee-form">
-            {% csrf_token %}
-            <div id="form-message" class="mb-4 text-center font-bold"></div>
-            <div class="space-y-4">
-                <input type="text" id="username" name="username" placeholder="اسم المستخدم" required class="w-full px-4 py-2 border border-slate-300 rounded-lg">
-                <input type="email" id="email" name="email" placeholder="البريد الإلكتروني (اختياري)" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
-                <input type="password" id="password" name="password" placeholder="كلمة المرور" required class="w-full px-4 py-2 border border-slate-300 rounded-lg">
-            </div>
-            <div class="mt-8">
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">إضافة الموظف</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
-        <h2 class="text-xl font-bold text-slate-800">تأكيد عملية الحذف</h2>
-        <p class="text-slate-600 mt-4" id="delete-confirm-message"></p>
-        <div class="mt-8 flex justify-center gap-x-4">
-            <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">إلغاء</button>
-            <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">نعم، قم بالحذف</button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 
@@ -90,23 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const toast = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
 
-    function showToast(message, isSuccess = true) {
-    if (!toast || !toastMessage) return;
     
-    toastMessage.textContent = message;
-    // تغيير لون الخلفية
-    toast.className = `fixed top-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out z-50 ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
-    
-    // إظهار الإشعار
-    toast.classList.remove('opacity-0', 'invisible');
-    toast.classList.add('opacity-100', 'visible');
-    
-    // إخفاء الإشعار بعد 3 ثواني
-    setTimeout(() => {
-        toast.classList.remove('opacity-100', 'visible');
-        toast.classList.add('opacity-0', 'invisible');
-    }, 3000);
-}
     // =============================================
     //         الجزء الثاني: إضافة موظف
     // =============================================
@@ -183,4 +139,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 </script>
+{% endblock %}
+
+{% comment %} تم نقل النوافذ إلى هذا البلوك الجديد {% endcomment %}
+{% block modals %}
+<div id="add-employee-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
+        <button id="close-add-modal-btn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        <h2 class="text-2xl font-bold text-slate-800 text-center mb-6">إضافة موظف جديد</h2>
+        <form id="add-employee-form">
+            {% csrf_token %}
+            <div id="form-message" class="mb-4 text-center font-bold"></div>
+            <div class="space-y-4">
+                <input type="text" id="username" name="username" placeholder="اسم المستخدم" required class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+                <input type="email" id="email" name="email" placeholder="البريد الإلكتروني (اختياري)" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+                <input type="password" id="password" name="password" placeholder="كلمة المرور" required class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+            </div>
+            <div class="mt-8">
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">إضافة الموظف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h2 class="text-xl font-bold text-slate-800">تأكيد عملية الحذف</h2>
+        <p class="text-slate-600 mt-4" id="delete-confirm-message"></p>
+        <div class="mt-8 flex justify-center gap-x-4">
+            <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">إلغاء</button>
+            <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">نعم، قم بالحذف</button>
+        </div>
+    </div>
+</div>
 {% endblock %}

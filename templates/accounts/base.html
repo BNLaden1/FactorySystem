@@ -13,6 +13,30 @@
     
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f7f8fc; }
+        /* --- الأنماط الجديدة لنظام الإشعارات المطور --- */
+       #toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    width: 280px;
+    transform: translateX(150%);
+    transition: transform 0.5s ease-in-out;
+}
+#toast-container.show {
+    transform: translateX(0);
+}
+#toast-progress {
+    transition: width 3.5s linear;
+}
+        #toast-progress {
+            transition: width 3.5s linear;
+        }
+
+#toast-message {
+    width: 100%; /* اجعل الفقرة تأخذ عرض الصندوق بالكامل */
+    text-align: center; /* قم بتوسيط النص داخل الفقرة */
+}
         .sidebar-scroll::-webkit-scrollbar { width: 5px; }
         .sidebar-scroll::-webkit-scrollbar-track { background-color: transparent; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #a0aec0; border-radius: 10px; }
@@ -28,10 +52,20 @@
     </style>
 </head>
 <body class="bg-gray-100">
-
-    <div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 invisible transition-opacity duration-500 ease-in-out z-50">
-    <p id="toast-message"></p>
+    <div id="toast-container">
+    <div id="toast-card" class="flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4">
+        <div id="toast-icon-container" class="flex-shrink-0 pt-0.5">
+            <i id="toast-icon" class="fas"></i>
+        </div>
+        <div class="ml-3 mr-3 w-0 flex-1">
+            <p id="toast-message" class="text-sm font-medium text-gray-900"></p>
+        </div>
     </div>
+    <div class="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-10 rounded-b-lg">
+        <div id="toast-progress" class="h-1 rounded-b-lg"></div>
+    </div>
+</div>
+    
     <div class="flex h-screen overflow-hidden">
         <aside id="sidebar" class="flex flex-col bg-white text-slate-800 shadow-lg w-64 flex-shrink-0">
             <div class="flex items-center justify-center p-4 border-b h-16">
@@ -77,9 +111,44 @@
             </main>
         </main>
     </div>
+    
+<script>
+        lucide.createIcons();
 
-    <script> lucide.createIcons(); </script>
+// --- دالة الإشعارات العامة (النسخة النهائية) ---
+const toastContainer = document.getElementById('toast-container');
+const toastCard = document.getElementById('toast-card');
+const toastMessage = document.getElementById('toast-message');
+const toastIcon = document.getElementById('toast-icon');
+const toastProgress = document.getElementById('toast-progress');
+
+function showToast(message, isSuccess = true) {
+    if (!toastContainer) return;
+
+    toastMessage.textContent = message;
+
+    if (isSuccess) {
+        toastCard.className = 'flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 border-green-500';
+        toastIcon.className = 'fas fa-check-circle text-green-500 text-xl';
+        toastProgress.className = 'h-1 rounded-b-lg bg-green-500';
+    } else {
+        toastCard.className = 'flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 border-red-500';
+        toastIcon.className = 'fas fa-exclamation-triangle text-red-500 text-xl';
+        toastProgress.className = 'h-1 rounded-b-lg bg-red-500';
+    }
+
+    toastContainer.classList.add('show');
+    toastProgress.style.width = '100%';
+    setTimeout(() => { toastProgress.style.width = '0%'; }, 50);
+
+    setTimeout(() => {
+        toastContainer.classList.remove('show');
+    }, 1500);
+}
+    </script>
     {% block extra_scripts %}{% endblock %}
 
-</body>
+    {% block modals %}{% endblock %}
+
+
 </html>
