@@ -1,0 +1,35 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}
+الرئيسية
+{% endblock %}
+
+{% block page_content %}
+<section>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 border-r-4 border-green-500 pr-3">الحسابات والتقارير</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4">
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-file-contract fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">تقرير يومية</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-chart-line fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">تقرير مبيعات يومية</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-receipt fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">تقرير مصروفات</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-user-tag fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">مديونية العملاء</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-hand-holding-dollar fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">تقرير صافي الربح</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-cash-register fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">تقرير عمليات الدرج</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-basket-shopping fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">فواتير المشتريات</p></a>
+        <a href="#" class="action-card flex flex-col items-center justify-center text-center group bg-white p-4 rounded-xl"><div class="icon-wrapper-green w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-undo-alt fa-xl"></i></div><p class="font-semibold text-xs text-gray-600">عرض مرتجع مشتريات</p></a>
+    </div>
+</section>
+
+<section>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 border-r-4 border-blue-500 pr-3">المخازن والعمليات</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4">
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-cart-plus fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">عملية بيع جديدة</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-boxes-stacked fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">عرض الأصناف</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-truck-fast fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">إضافة مورد</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-magnifying-glass-dollar fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">البحث فى الفواتير</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-book-bookmark fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">سجل مصروف</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-cart-arrow-down fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">إضافة مشتريات</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-arrow-turn-up fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">فاتورة مرتجع مبيعات</p></a>
+        <a href="#" class="action-card bg-white p-4 rounded-lg flex flex-col items-center justify-center text-center group"><div class="icon-wrapper-blue w-16 h-16 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-user-plus fa-xl"></i></div><p class="font-semibold text-sm text-gray-700">عميل جديد</p></a>
+    </div>
+</section>
+{% endblock page_content %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل صلاحيات {{ user_to_edit.username }}{% endblock %}
+
+{% block content %}
+    <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2">تعديل صلاحيات المستخدم</h1>
+        <p class="text-lg text-slate-600 mb-6">المستخدم: <span class="font-bold text-blue-600">{{ user_to_edit.username }}</span></p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="space-y-6">
+                
+                {% for page in top_level_pages %}
+                    <div class="p-4 border rounded-lg bg-slate-50">
+                        <h3 class="text-lg font-semibold text-slate-700 mb-3">{{ page.name }}</h3>
+                        <div class="space-y-3 pr-4 border-r-2 border-slate-200">
+                            {% for child_page in page.children.all %}
+                            <div class="flex items-center">
+                                <input type="checkbox" name="pages" value="{{ child_page.id }}" id="page_{{ child_page.id }}"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    {% if child_page in user_to_edit.direct_permissions.all %}checked{% endif %}>
+                                <label for="page_{{ child_page.id }}" class="mr-3 block text-sm font-medium text-gray-700">
+                                    {{ child_page.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+            <div class="mt-8 border-t pt-5">
+                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">
+                    حفظ التغييرات
+                </button>
+                <a href="{% url 'manage_users' %}" class="mr-4 text-gray-600 hover:text-gray-900">إلغاء</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

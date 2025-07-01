@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}لوحة التحكم{% endblock %} - برنامج MIA</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f8fc; }
+        /* --- الأنماط الجديدة لنظام الإشعارات المطور --- */
+       #toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    width: 280px;
+    transform: translateX(150%);
+    transition: transform 0.5s ease-in-out;
+}
+#toast-container.show {
+    transform: translateX(0);
+}
+#toast-progress {
+    transition: width 3.5s linear;
+}
+        #toast-progress {
+            transition: width 3.5s linear;
+        }
+
+#toast-message {
+    width: 100%; /* اجعل الفقرة تأخذ عرض الصندوق بالكامل */
+    text-align: center; /* قم بتوسيط النص داخل الفقرة */
+}
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background-color: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background-color: #a0aec0; border-radius: 10px; }
+        .modern-header { background-color: #f8f9fa; border: 1px solid #dee2e6; }
+        .info-badge { display: flex; align-items: center; gap: 0.5rem; background-color: #ffffff; padding: 0.4rem 0.9rem; border-radius: 0.5rem; font-size: 0.8rem; color: #4b5563; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .info-badge i { color: #3b82f6; }
+        .subscription-badge { background-color: #fff1f2; color: #be123c; }
+        .subscription-badge .font-bold { color: #9f1239; }
+        .action-card { transition: all 0.3s ease; border: 1px solid #e2e8f0; }
+        .action-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        .icon-wrapper-green { background-color: #f0fff4; color: #38a169; }
+        .icon-wrapper-blue { background-color: #ebf8ff; color: #3182ce; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="toast-container">
+    <div id="toast-card" class="flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4">
+        <div id="toast-icon-container" class="flex-shrink-0 pt-0.5">
+            <i id="toast-icon" class="fas"></i>
+        </div>
+        <div class="ml-3 mr-3 w-0 flex-1">
+            <p id="toast-message" class="text-sm font-medium text-gray-900"></p>
+        </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-10 rounded-b-lg">
+        <div id="toast-progress" class="h-1 rounded-b-lg"></div>
+    </div>
+</div>
+    
+    <div class="flex h-screen overflow-hidden">
+        <aside id="sidebar" class="flex flex-col bg-white text-slate-800 shadow-lg w-64 flex-shrink-0">
+            <div class="flex items-center justify-center p-4 border-b h-16">
+                 <img src="https://placehold.co/40x40/2563eb/FFFFFF?text=MIA" alt="Logo" class="rounded-full">
+                 <h1 id="sidebar-title" class="font-bold text-xl ml-3 mr-3">برنامج MIA</h1>
+            </div>
+            <nav class="flex-1 overflow-y-auto sidebar-scroll p-2">
+                <ul class="space-y-1">
+                    {% for category, pages in sidebar_categories.items %}
+                        <h3 class="px-3 pt-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ category }}</h3>
+                        {% for page in pages %}
+                        <li>
+                            <a href="{% url page.url_name %}" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-slate-200 {% if page.url_name == page_name %} bg-blue-100 text-blue-700 font-bold {% endif %}">
+                                <i data-lucide="{{ page.icon_class }}" class="w-5 h-5"></i>
+                                <span class="sidebar-text ml-4 mr-4">{{ page.name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </nav>
+            <div class="border-t p-2">
+                 <a href="{% url 'logout' %}" class="sidebar-link flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100">
+                     <i data-lucide="log-out" class="w-5 h-5"></i>
+                     <span class="ml-4 mr-4">تسجيل خروج</span>
+                 </a>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <header class="rounded-xl p-4 mb-6 flex justify-between items-center flex-wrap gap-y-3 modern-header">
+                <div class="flex items-center gap-x-3">
+                    <div class="info-badge"><i class="fa-regular fa-user"></i><span class="font-semibold">{{ user.username }}</span></div>
+                    <div class="info-badge"><i class="fa-regular fa-calendar-days"></i><span>{{ today_date }}</span></div>
+                </div>
+                <div class="text-xl font-bold text-slate-800"><span class="text-slate-500 font-medium">شركة:</span><span>{{ company_name }}</span></div>
+                <div class="info-badge subscription-badge"><span>الاشتراك ينتهي خلال:</span><span class="font-bold">{{ subscription_days }} يوم</span></div>
+            </header>
+
+            <main class="space-y-8">
+                {% block page_content %}
+                {% endblock page_content %}
+            </main>
+        </main>
+    </div>
+    
+<script>
+        lucide.createIcons();
+
+// --- دالة الإشعارات العامة (النسخة النهائية) ---
+const toastContainer = document.getElementById('toast-container');
+const toastCard = document.getElementById('toast-card');
+const toastMessage = document.getElementById('toast-message');
+const toastIcon = document.getElementById('toast-icon');
+const toastProgress = document.getElementById('toast-progress');
+
+function showToast(message, type = 'success') {
+    if (!toastContainer) return;
+
+    toastMessage.textContent = message;
+
+    if (type === 'success') {
+        // تطبيق كلاسات اللون الأخضر مباشرة
+        toastCard.className = 'flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 border-green-500';
+        toastIcon.className = 'fas fa-check-circle text-green-500 text-xl';
+        toastProgress.className = 'h-1 rounded-b-lg bg-green-500';
+    } else if (type === 'info') {
+        // تطبيق كلاسات اللون الأزرق مباشرة
+        toastCard.className = 'flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 border-blue-500';
+        toastIcon.className = 'fas fa-info-circle text-blue-500 text-xl';
+        toastProgress.className = 'h-1 rounded-b-lg bg-blue-500';
+    } else { // أي نوع آخر سيكون خطأ (أحمر)
+        toastCard.className = 'flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 border-red-500';
+        toastIcon.className = 'fas fa-exclamation-triangle text-red-500 text-xl';
+        toastProgress.className = 'h-1 rounded-b-lg bg-red-500';
+    }
+
+    // إظهار وإخفاء الإشعار
+    toastContainer.classList.add('show');
+    toastProgress.style.width = '100%';
+    setTimeout(() => { toastProgress.style.width = '0%'; }, 50);
+
+    setTimeout(() => {
+        toastContainer.classList.remove('show');
+    }, 1500);
+}
+    </script>
+    {% block extra_scripts %}{% endblock %}
+
+    {% block modals %}{% endblock %}
+
+
+</html>

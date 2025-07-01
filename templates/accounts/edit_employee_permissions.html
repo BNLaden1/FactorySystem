@@ -1,0 +1,78 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}تعديل صلاحيات {{ employee.username }}{% endblock %}
+
+{% block page_content %}
+<div class="bg-white p-6 rounded-2xl shadow-lg">
+    <h1 class="text-2xl font-bold text-slate-800">تعديل صلاحيات الموظف: <span class="text-blue-600">{{ employee.username }}</span></h1>
+    <p class="text-slate-500 mt-1">اختر الصفحات والعمليات التي يمكن لهذا الموظف الوصول إليها.</p>
+
+    <form id="permissions-form" class="mt-8 space-y-6">
+        {% csrf_token %}
+        {% for page in top_level_pages %}
+        <div class="p-4 border rounded-lg bg-slate-50">
+            <label class="flex items-center text-lg font-semibold text-slate-700">
+                <input type="checkbox" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ml-3" 
+                       data-page-id="{{ page.id }}"
+                       {% if page in employee_permissions %}checked{% endif %}>
+                <span>{{ page.name }}</span>
+            </label>
+
+            {% if page.children.all %}
+            <div class="mt-4 space-y-3 pr-8 border-r-2 border-slate-200">
+                {% for child_page in page.children.all %}
+                <label class="flex items-center text-md font-medium text-gray-700">
+                     <input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ml-3"
+                            data-page-id="{{ child_page.id }}"
+                            {% if child_page in employee_permissions %}checked{% endif %}>
+                    <span>{{ child_page.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="mt-8 border-t pt-5">
+            <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700">حفظ التغييرات</button>
+        </div>
+    </form>
+    {% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('permissions-form');
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const pageId = this.dataset.pageId;
+            const isChecked = this.checked;
+
+            const data = {
+                page_id: pageId,
+                is_active: isChecked,
+            };
+
+            fetch("{% url 'save_employee_permissions' employee.id %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // يمكنك إضافة رسالة تأكيد صغيرة هنا إذا أردت
+                    console.log('تم حفظ التغيير بنجاح');
+                } else {
+                    alert('حدث خطأ أثناء حفظ الصلاحية.');
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+</div>
+{% endblock %}
