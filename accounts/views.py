@@ -494,36 +494,69 @@ def inventory_page_view(request):
 # accounts/views.py
 
 @login_required
+@page_permission_required("new_sale")
 def new_sale_view(request):
-    # جلب كل الأصناف لعرضها في قائمة منسدلة
-    all_items = Item.objects.filter(company=request.user.company)
+    company = request.user.company
     
     if request.method == 'POST':
         try:
+            # استلام البيانات من الفورم
             item_id = request.POST.get('item_id')
-            quantity_sold = int(request.POST.get('quantity_sold', 0))
+            quantity_sold = Decimal(request.POST.get('quantity_sold', 0))
+            cashbox_id = request.POST.get('cashbox_id')
+            payment_method = request.POST.get('payment_method')
 
-            # البحث عن الصنف في المخزون
-            item_to_sell = get_object_or_404(Item, id=item_id, company=request.user.company)
+            with transaction.atomic():
+                # جلب الصنف من قاعدة البيانات
+                item_to_sell = Item.objects.select_for_update().get(id=item_id, company=company)
 
-            # التحقق إذا كانت الكمية المتاحة كافية
-            if item_to_sell.quantity >= quantity_sold:
-                # خصم الكمية المباعة
+                # التحقق من توفر الكمية
+                if item_to_sell.quantity < quantity_sold:
+                    # يمكنك إضافة رسالة خطأ هنا
+                    # messages.error(request, "الكمية المطلوبة غير متوفرة.")
+                    return redirect('new_sale')
+                
+                # خصم الكمية من المخزون
                 item_to_sell.quantity -= quantity_sold
                 item_to_sell.save()
-                # يمكنك إضافة رسالة نجاح هنا
-            else:
-                # يمكنك إضافة رسالة خطأ هنا (الكمية غير كافية)
-                pass
 
-            return redirect('new_sale') # إعادة تحميل الصفحة بعد الحفظ
+                # --- ✨ هذا هو الجزء الذي تم تصحيحه ---
+                # حساب إجمالي الفاتورة مباشرةً
+                total_amount = item_to_sell.price * quantity_sold
+
+                # لو كان الدفع نقدي، قم بإنشاء حركة خزنة
+                if payment_method == 'cash' and cashbox_id and total_amount > 0:
+                    cashbox_instance = Cashbox.objects.select_for_update().get(id=cashbox_id, company=company)
+                    
+                    CashboxTransaction.objects.create(
+                        company=company,
+                        cashbox=cashbox_instance,
+                        transaction_type='in',
+                        amount=total_amount,
+                        category='customer_payment',
+                        description=f"تحصيل قيمة مبيعات الصنف: {item_to_sell.name}"
+                    )
+                    
+                    # تحديث رصيد الخزنة
+                    cashbox_instance.balance += total_amount
+                    cashbox_instance.save()
+                # --- نهاية الجزء المصحح ---
+
+            # يمكنك إضافة رسالة نجاح هنا
+            # messages.success(request, "تم حفظ الفاتورة بنجاح.")
+            return redirect('inventory_page') # توجيه المستخدم لصفحة المخزون ليرى التغيير
+
         except Exception as e:
-            # معالجة الأخطاء
-            pass
+            # messages.error(request, f"حدث خطأ: {e}")
+            return redirect('new_sale')
 
+    # جلب البيانات لعرضها في الصفحة
+    items = Item.objects.filter(company=company, quantity__gt=0)
+    cashboxes = Cashbox.objects.filter(company=company, is_active=True)
     context = {
-        'items_list': all_items,
+        'items_list': items,
         'page_name': 'new_sale',
+        'cashboxes': cashboxes,
     }
     return render(request, 'accounts/new_sale.html', context)
 
