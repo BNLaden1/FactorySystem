@@ -33,6 +33,14 @@ PAGES = [
     #شجرة الحسابات
     {'name': 'قيود اليومية', 'url_name': 'journal_entry', 'category': 'الحسابات', 'icon_class': 'book-text'},
     {'name': 'دليل الحسابات', 'url_name': 'chart_of_accounts', 'category': 'الحسابات', 'icon_class': 'book-key'},
+    # accounts/management/commands/seed_pages.py
+    # ...
+    {'name': 'قيود اليومية', 'url_name': 'journal_entry', 'category': 'الحسابات', 'icon_class': 'book-text'},
+    
+    # ▼▼▼ أضف هذا السطر الجديد ▼▼▼
+    {'name': 'إدارة الخزن', 'url_name': 'cashbox_management', 'category': 'الحسابات', 'icon_class': 'wallet'},
+    {'name': 'تسجيل حركة خزنة', 'url_name': 'new_cashbox_transaction', 'category': 'الحسابات', 'icon_class': 'receipt'},
+    {'name': 'تقرير حركة خزنة', 'url_name': 'cashbox_report', 'category': 'الحسابات', 'icon_class': 'book-copy'},
 ]
 
 class Command(BaseCommand):

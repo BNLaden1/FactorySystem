@@ -17,8 +17,10 @@ from datetime import timedelta
 from django.utils import timezone
 from .models import IPRegistrationRecord, Group
 from .decorators import page_permission_required 
-from .models import ChartOfAccount, JournalEntry, Transaction
+from .models import ChartOfAccount, JournalEntry, Transaction, Cashbox, CashboxTransaction
 from django.utils import timezone
+from decimal import Decimal
+
 
 
 # --- دوال مساعدة للتحقق من الصلاحيات ---
@@ -612,3 +614,120 @@ def chart_of_accounts_view(request):
         'page_name': 'chart_of_accounts',
     }
     return render(request, 'accounts/chart_of_accounts.html', context)
+
+
+@login_required
+@page_permission_required("cashbox_management")
+def cashbox_management_view(request):
+    company = request.user.company
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        box_type = request.POST.get('box_type')
+        initial_balance = request.POST.get('initial_balance', 0)
+
+        if name and box_type:
+            Cashbox.objects.create(
+                company=company,
+                name=name,
+                box_type=box_type,
+                balance=initial_balance
+            )
+        return redirect('cashbox_management')
+
+    cashboxes = Cashbox.objects.filter(company=company)
+    box_types = Cashbox.CASHBOX_TYPE_CHOICES
+    
+    context = {
+        'cashboxes': cashboxes,
+        'box_types': box_types,
+        'page_name': 'cashbox_management',
+    }
+    return render(request, 'accounts/cashbox_management.html', context)
+
+@login_required
+@page_permission_required("new_cashbox_transaction")
+def new_cashbox_transaction_view(request):
+    company = request.user.company
+    
+    if request.method == 'POST':
+        try:
+            cashbox_id = request.POST.get('cashbox')
+            transaction_type = request.POST.get('transaction_type')
+            amount = Decimal(request.POST.get('amount', 0)) # تحويل المبلغ لرقم عشري
+            category = request.POST.get('category')
+            description = request.POST.get('description')
+
+            if amount > 0 and cashbox_id and transaction_type and category:
+                with transaction.atomic():
+                    # نستخدم select_for_update لقفل الخزنة ومنع أي تعديل عليها حتى انتهاء عمليتنا
+                    cashbox_instance = Cashbox.objects.select_for_update().get(id=cashbox_id, company=company)
+                    
+                    # إنشاء حركة الخزنة
+                    CashboxTransaction.objects.create(
+                        company=company,
+                        cashbox=cashbox_instance,
+                        transaction_type=transaction_type,
+                        amount=amount,
+                        category=category,
+                        description=description
+                    )
+
+                    # ✨ تحديث رصيد الخزنة تلقائيًا ✨
+                    if transaction_type == 'in': # في حالة التحصيل
+                        cashbox_instance.balance += amount
+                    elif transaction_type == 'out': # في حالة الصرف
+                        cashbox_instance.balance -= amount
+                    
+                    cashbox_instance.save()
+
+                return redirect('cashbox_management') # توجيه المستخدم لصفحة الخزن ليرى الرصيد المحدث
+        except Exception as e:
+            # يمكنك إضافة رسالة خطأ هنا
+            print(e) # لطباعة الخطأ في التيرمينال أثناء التطوير
+
+    # جلب البيانات لعرضها في الفورم
+    cashboxes = Cashbox.objects.filter(company=company, is_active=True)
+    transaction_types = CashboxTransaction.TRANSACTION_TYPE_CHOICES
+    categories = CashboxTransaction.CATEGORY_CHOICES
+    
+    context = {
+        'cashboxes': cashboxes,
+        'transaction_types': transaction_types,
+        'categories': categories,
+        'page_name': 'new_cashbox_transaction',
+    }
+    return render(request, 'accounts/new_cashbox_transaction.html', context)
+@login_required
+@page_permission_required("cashbox_report")
+def cashbox_report_view(request):
+    company = request.user.company
+    
+    # جلب الخزن لعرضها في الفلتر
+    cashboxes = Cashbox.objects.filter(company=company)
+    
+    # استلام بيانات الفلتر من المستخدم
+    selected_cashbox_id = request.GET.get('cashbox')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    transactions = CashboxTransaction.objects.filter(company=company)
+
+    if selected_cashbox_id:
+        transactions = transactions.filter(cashbox_id=selected_cashbox_id)
+    
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    context = {
+        'cashboxes': cashboxes,
+        'transactions': transactions,
+        'selected_cashbox_id': selected_cashbox_id,
+        'start_date': start_date,
+        'end_date': end_date,
+        'page_name': 'cashbox_report',
+    }
+    return render(request, 'accounts/cashbox_report.html', context)

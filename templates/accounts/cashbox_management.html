@@ -1,0 +1,67 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}إدارة الخزن{% endblock %}
+
+{% block page_content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="md:col-span-1">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">إضافة خزنة / حساب بنكي جديد</h2>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="name" class="block mb-2 text-sm font-medium">اسم الخزنة (مثال: خزنة رئيسية، عهدة فلان)</label>
+                    <input type="text" name="name" id="name" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="box_type" class="block mb-2 text-sm font-medium">نوع الخزنة</label>
+                    <select name="box_type" id="box_type" required class="w-full px-3 py-2 border rounded-lg">
+                        {% for code, name in box_types %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="initial_balance" class="block mb-2 text-sm font-medium">الرصيد الافتتاحي (اختياري)</label>
+                    <input type="number" step="0.01" name="initial_balance" value="0.00" id="initial_balance" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">
+                        إضافة الخزنة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="md:col-span-2">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">الخزن الحالية</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-right">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-3 text-sm font-semibold">اسم الخزنة</th>
+                            <th class="p-3 text-sm font-semibold">النوع</th>
+                            <th class="p-3 text-sm font-semibold">الرصيد الحالي</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for box in cashboxes %}
+                        <tr>
+                            <td class="p-3 font-semibold">{{ box.name }}</td>
+                            <td class="p-3 text-slate-500">{{ box.get_box_type_display }}</td>
+                            <td class="p-3 font-mono font-bold text-lg {% if box.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ box.balance }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center p-6 text-gray-500">لم تقم بإضافة أي خزن بعد.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -45,4 +45,7 @@ urlpatterns = [
     path('new-sale/', views.new_sale_view, name='new_sale'),
     path('journal-entry/', views.journal_entry_view, name='journal_entry'),
     path('chart-of-accounts/', views.chart_of_accounts_view, name='chart_of_accounts'),
+    path('cashboxes/', views.cashbox_management_view, name='cashbox_management'),
+    path('cashbox-transaction/new/', views.new_cashbox_transaction_view, name='new_cashbox_transaction'),
+    path('cashbox-report/', views.cashbox_report_view, name='cashbox_report'),
 ]
