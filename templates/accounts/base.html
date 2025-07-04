@@ -52,19 +52,21 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <div id="toast-container">
-    <div id="toast-card" class="flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4">
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] w-72 transform translate-x-[150%] transition-transform duration-500 ease-in-out">
+    <div id="toast-card" class="flex items-start p-4 rounded-lg shadow-lg bg-white border-l-4 relative overflow-hidden">
         <div id="toast-icon-container" class="flex-shrink-0 pt-0.5">
-            <i id="toast-icon" class="fas"></i>
+            <i id="toast-icon" class="fas text-xl"></i>
         </div>
         <div class="ml-3 mr-3 w-0 flex-1">
-            <p id="toast-message" class="text-sm font-medium text-gray-900"></p>
+            <p id="toast-message" class="text-sm font-medium text-gray-900 text-center"></p>
         </div>
-    </div>
-    <div class="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-10 rounded-b-lg">
-        <div id="toast-progress" class="h-1 rounded-b-lg"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-10">
+            <div id="toast-progress" class="h-1 transition-all duration-2000 linear"></div>
+        </div>
+   
     </div>
 </div>
+
     
     <div class="flex h-screen overflow-hidden">
         <aside id="sidebar" class="flex flex-col bg-white text-slate-800 shadow-lg w-64 flex-shrink-0">

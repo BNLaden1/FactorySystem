@@ -102,3 +102,149 @@ class Item(models.Model):
     class Meta:
         verbose_name = "صنف"
         verbose_name_plural = "6. الأصناف"
+
+        # accounts/models.py
+
+# ... (كل النماذج الموجودة بالفعل مثل Company, User, Item تبقى كما هي) ...
+
+
+# ▼▼▼ بداية الكود الجديد للنماذج المحاسبية ▼▼▼
+
+class ChartOfAccount(models.Model):
+    """
+    نموذج دليل الحسابات (شجرة الحسابات).
+    يحتوي على كل الحسابات الممكنة في النظام.
+    """
+    ACCOUNT_TYPE_CHOICES = [
+        ('Asset', 'أصل'),
+        ('Liability', 'التزام'),
+        ('Equity', 'حقوق ملكية'),
+        ('Revenue', 'إيراد'),
+        ('Expense', 'مصروف'),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="اسم الحساب")
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES, verbose_name="نوع الحساب")
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children', verbose_name="الحساب الأب")
+    
+    # كل حساب يتبع لشركة معينة لضمان العزل
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='chart_of_accounts', verbose_name="الشركة")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "حساب في الدليل"
+        verbose_name_plural = "دليل الحسابات"
+
+
+class JournalEntry(models.Model):
+    """
+    نموذج قيد اليومية. يمثل كل معاملة مالية.
+    """
+    date = models.DateField(auto_now_add=True, verbose_name="تاريخ القيد")
+    description = models.CharField(max_length=255, verbose_name="البيان/الوصف")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='journal_entries', verbose_name="الشركة")
+
+    def __str__(self):
+        return f"قيد رقم {self.id} - {self.description}"
+
+    class Meta:
+        verbose_name = "قيد يومية"
+        verbose_name_plural = "قيود اليومية"
+
+
+class Transaction(models.Model):
+    """
+    نموذج الحركة المالية. يمثل كل سطر (مدين أو دائن) في قيد اليومية.
+    """
+    # ✨ 1. هذه هي القائمة التي كانت مفقودة أو غير صحيحة ✨
+    TRANSACTION_TYPE_CHOICES = [
+        ('General', 'عام'),
+        ('Sarf', 'سند صرف'),
+        ('Qabd', 'سند قبض'),
+        ('Taswya', 'تسوية عهدة'),
+        ('Ajel', 'آجل'),
+    ]
+
+    journal_entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='transactions', verbose_name="القيد الأصلي")
+    account = models.ForeignKey(ChartOfAccount, on_delete=models.PROTECT, verbose_name="الحساب")
+    debit = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="مدين (صدر له)")
+    credit = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="دائن (صدر منه)")
+    
+    # ✨ 2. وهذا هو الحقل الذي يستخدم القائمة ✨
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, default='General', verbose_name="نوع الحركة")
+
+    def __str__(self):
+        return f"حركة على حساب {self.account.name}"
+
+    class Meta:
+        verbose_name = "حركة مالية"
+        verbose_name_plural = "الحركات المالية"
+
+        # ▼▼▼ بداية الكود الجديد لموديول الخزنة ▼▼▼
+
+class Cashbox(models.Model):
+    """
+    يمثل كل خزنة في الشركة (نقدية، بنك، عهدة).
+    """
+    CASHBOX_TYPE_CHOICES = [
+        ('cash', 'نقدية'),
+        ('bank', 'بنكية'),
+        ('custody', 'عهدة'),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="اسم الخزنة/الحساب")
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="الرصيد الحالي")
+    box_type = models.CharField(max_length=20, choices=CASHBOX_TYPE_CHOICES, default='cash', verbose_name="نوع الخزنة")
+    is_active = models.BooleanField(default=True, verbose_name="مفعّلة")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='cashboxes', verbose_name="الشركة")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "خزنة"
+        verbose_name_plural = "الخزن"
+
+
+class CashboxTransaction(models.Model):
+    """
+    يمثل كل حركة مالية (صرف أو تحصيل) من خزنة معينة.
+    """
+    TRANSACTION_TYPE_CHOICES = [
+        ('in', 'تحصيل/إيداع'),
+        ('out', 'صرف/سحب'),
+    ]
+    CATEGORY_CHOICES = [
+        ('salary', 'راتب'),
+        ('expense', 'مصروف'),
+        ('supplier_payment', 'دفعة لمورد'),
+        ('customer_payment', 'تحصيل من عميل'),
+        ('custody_settlement', 'تسوية عهدة'),
+        ('other', 'أخرى'),
+    ]
+
+    cashbox = models.ForeignKey(Cashbox, on_delete=models.PROTECT, related_name='transactions', verbose_name="الخزنة")
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES, verbose_name="نوع العملية")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="المبلغ")
+    date = models.DateTimeField(default=timezone.now, verbose_name="التاريخ")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="التصنيف")
+    description = models.TextField(verbose_name="البيان/الوصف")
+    
+    # يمكنك إضافة حقول لربط الحركة بالموظف/العميل/المورد لاحقًا
+    # related_employee = models.ForeignKey(User, ...)
+    
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='cashbox_transactions')
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} من/إلى {self.cashbox.name} بقيمة {self.amount}"
+
+    class Meta:
+        verbose_name = "حركة خزنة"
+        verbose_name_plural = "حركات الخزن"
+        ordering = ['-date']
+        
+# ▲▲▲ نهاية الكود الجديد ▲▲▲

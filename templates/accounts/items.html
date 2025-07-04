@@ -29,31 +29,55 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
-                {% for item in items_list %}
-                <tr>
-                    <td class="p-4 whitespace-nowrap">{{ item.name }}</td>
-                    <td class="p-4 whitespace-nowrap">{{ item.code|default:"-" }}</td>
-                    <td class="p-4 whitespace-nowrap">{{ item.price }}</td>
-                    <td class="p-4 whitespace-nowrap">{{ item.quantity }}</td>
-                    <td class="p-4 whitespace-nowrap text-sm font-medium">
-                        <div class="flex items-center justify-center gap-x-4">
-                            <button class="edit-item-btn p-2 rounded-full text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors" data-item-id="{{ item.id }}">
-                                <i class="fas fa-pencil-alt fa-fw"></i>
-                            </button>
-                            <button class="delete-item-btn p-2 rounded-full text-red-600 bg-red-100 hover:bg-red-200 transition-colors" data-item-id="{{ item.id }}">
-                                <i class="fas fa-trash-alt fa-fw"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center p-6 text-gray-500">
-                        لم تقم بإضافة أي أصناف بعد.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+    {% for item in items_list %}
+    <tr class="item-row" data-item-id="{{ item.id }}">
+        
+        <td class="p-2">
+            <span class="view-mode px-2 py-1">{{ item.name }}</span>
+            <input type="text" name="name" value="{{ item.name }}" class="edit-mode hidden w-full px-2 py-1 border rounded-md">
+        </td>
+        <td class="p-2">
+            <span class="view-mode px-2 py-1">{{ item.code|default:"-" }}</span>
+            <input type="text" name="code" value="{{ item.code|default:'' }}" class="edit-mode hidden w-full px-2 py-1 border rounded-md">
+        </td>
+        <td class="p-2">
+            <span class="view-mode px-2 py-1">{{ item.price }}</span>
+            <input type="number" step="0.01" name="price" value="{{ item.price }}" class="edit-mode hidden w-full px-2 py-1 border rounded-md">
+        </td>
+        <td class="p-2">
+            <span class="view-mode px-2 py-1">{{ item.quantity }}</span>
+            <input type="number" name="quantity" value="{{ item.quantity }}" class="edit-mode hidden w-full px-2 py-1 border rounded-md">
+        </td>
+       <td class="p-2">
+    <div class="flex items-center justify-center gap-x-3">
+        <div class="view-mode-actions flex items-center justify-center gap-x-3">
+            <button class="edit-item-btn p-2 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-colors">
+                <i class="fas fa-pencil-alt fa-fw"></i>
+            </button>
+            <button class="delete-item-btn p-2 rounded-lg text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors">
+                <i class="fas fa-trash-alt fa-fw"></i>
+            </button>
+        </div>
+        <div class="edit-mode-actions hidden flex items-center justify-center gap-x-3">
+            <button class="save-item-btn p-2 rounded-lg text-slate-500 hover:bg-green-100 hover:text-green-600 transition-colors">
+                <i class="fas fa-check fa-fw"></i>
+            </button>
+            <button class="cancel-edit-btn p-2 rounded-lg text-slate-500 hover:bg-gray-200 hover:text-gray-700 transition-colors">
+                <i class="fas fa-times fa-fw"></i>
+            </button>
+        </div>
+    </div>
+</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center p-6 text-gray-500">
+                لم تقم بإضافة أي أصناف بعد.
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+            
         </table>
     </div>
 </div>
@@ -64,14 +88,14 @@
     <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] flex flex-col ring-1 ring-slate-200">
         <button id="close-modal-btn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-2xl z-20">&times;</button>
         
-        <h2 class="text-2xl font-bold text-slate-800 text-center mb-6 pb-4 border-b border-slate-100">إضافة أصناف جديدة</h2>
+        <h2 class="text-2xl font-bold text-slate-800 text-center mb-6 pb-4 border-b border-slate-100 flex-shrink-0">
+            إضافة أصناف جديدة
+        </h2>
         
-        <form id="add-item-form" class="flex-grow flex flex-col">
+        <form id="add-item-form" class="flex-grow flex flex-col min-h-0">
             {% csrf_token %}
-            <div id="form-message" class="mb-4 text-center font-bold"></div>
             
             <div class="flex-grow overflow-y-auto pr-2">
-                
                 <div class="grid grid-cols-12 gap-x-4 items-center pb-2 mb-3 sticky top-0 bg-white z-10">
                     <label class="col-span-3 text-sm font-medium text-slate-500 text-center">اسم الصنف</label>
                     <label class="col-span-2 text-sm font-medium text-slate-500 text-center">الكود</label>
@@ -82,7 +106,7 @@
                 </div>
                 <div id="item-rows-container" class="space-y-3">
                     <div class="item-row grid grid-cols-12 gap-x-4 items-center">
-                        <input type="text" name="name" placeholder="اسم الصنف" required class="col-span-3 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" name="name" placeholder="اسم الصنف" required class="col-span-3 px-3 py-2 border rounded-lg">
                         <input type="text" name="code" placeholder="اختياري" class="col-span-2 px-3 py-2 border rounded-lg">
                         <input type="number" step="0.01" name="price" value="0.00" required class="col-span-2 px-3 py-2 border rounded-lg">
                         <input type="number" step="0.01" name="cost" value="0.00" required class="col-span-2 px-3 py-2 border rounded-lg">
@@ -94,12 +118,12 @@
                 </div>
             </div>
 
-            <div class="mt-6 border-t pt-6 flex justify-between items-center">
+            <div class="mt-6 border-t pt-6 flex justify-between items-center flex-shrink-0">
                 <button type="button" id="add-row-btn" class="text-blue-600 font-semibold flex items-center gap-x-2 hover:text-blue-800">
                     <i class="fas fa-plus-circle"></i>
                     <span>إضافة صنف آخر</span>
                 </button>
-                <button type="submit" id="submit-form-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-x-3">
+                <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-x-3">
                     <i class="fas fa-save"></i>
                     <span>حفظ كل الأصناف</span>
                 </button>
@@ -123,165 +147,187 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ==========================================================
+    //  1. تعريف كل العناصر التي سنتعامل معها مرة واحدة فقط
+    // ==========================================================
+    const mainTableBody = document.querySelector('table.min-w-full tbody');
+    // --- عناصر نافذة الإضافة ---
     const addBtn = document.getElementById('add-item-btn');
-    const modal = document.getElementById('add-item-modal');
-    const closeBtn = document.getElementById('close-modal-btn');
+    const addModal = document.getElementById('add-item-modal');
+    const closeAddModalBtn = document.getElementById('close-modal-btn');
     const addRowBtn = document.getElementById('add-row-btn');
-    const rowsContainer = document.getElementById('item-rows-container');
-    const submitFormBtn = document.getElementById('submit-form-btn');
-    const form = document.getElementById('add-item-form'); // تم تعريفه هنا
-
-    if(addBtn) addBtn.addEventListener('click', () => modal.classList.remove('hidden'));
-    if(closeBtn) closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-
-    if(addRowBtn) {
-        addRowBtn.addEventListener('click', () => {
-            const firstRow = rowsContainer.querySelector('.item-row');
-            const newRow = firstRow.cloneNode(true);
-            newRow.querySelectorAll('input').forEach(input => {
-                input.value = (input.type === 'number') ? '0' : '';
-            });
-            newRow.querySelector('.remove-row-btn').classList.remove('hidden');
-            rowsContainer.appendChild(newRow);
-        });
-    }
-
-    if(rowsContainer) {
-        rowsContainer.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-row-btn')) {
-                // التأكد من عدم حذف آخر صف
-                if (rowsContainer.querySelectorAll('.item-row').length > 1) {
-                    e.target.closest('.item-row').remove();
-                }
-            }
-        });
-    }
-
-if (form) {
-    form.addEventListener('submit', function(event) {
-        // هذا هو السطر الجديد والمهم لمنع إعادة التحميل
-        event.preventDefault(); 
-
-        const itemsData = [];
-        const rows = rowsContainer.querySelectorAll('.item-row');
-        
-        rows.forEach(row => {
-            const nameInput = row.querySelector('input[name="name"]');
-            if (nameInput.value.trim() !== '') {
-                itemsData.push({
-                    name: nameInput.value,
-                    code: row.querySelector('input[name="code"]').value,
-                    price: row.querySelector('input[name="price"]').value,
-                    cost: row.querySelector('input[name="cost"]').value,
-                    quantity: row.querySelector('input[name="quantity"]').value,
-                });
-            }
-        });
-
-        if (itemsData.length === 0) {
-            showToast('يرجى إدخال بيانات صنف واحد على الأقل.', 'error');
-            return;
-        }
-
-        fetch("{% url 'add_item' %}", {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value 
-            },
-            body: JSON.stringify(itemsData)
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error('فشل الاتصال بالسيرفر. تأكد أن كل شيء صحيح.');
-        })
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'info');
-                setTimeout(() => { window.location.reload(); }, 2000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Fetch Error:', error);
-            showToast(error.message, 'error');
-        });
-    });
-}
-
-    // =======================================================
-    //   الكود الجديد والمطور للتعامل مع نافذة تأكيد الحذف
-    // =======================================================
-
+    const itemRowsContainer = document.getElementById('item-rows-container');
+    const addItemForm = document.getElementById('add-item-form');
+    // --- عناصر نافذة الحذف ---
     const deleteModal = document.getElementById('delete-confirm-modal');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-    const tableBody = document.querySelector('table tbody');
     let itemIdToDelete = null;
 
-    if (tableBody) {
-        tableBody.addEventListener('click', function(e) {
-            const deleteButton = e.target.closest('.delete-item-btn');
-            
-            if (deleteButton) {
-                // 1. عند الضغط على زر الحذف، نحفظ الـ ID ونُظهر النافذة
-                itemIdToDelete = deleteButton.dataset.itemId;
-                if (deleteModal) deleteModal.classList.remove('hidden');
+    // ==========================================================
+    //  2. كل ما يخص نافذة الإضافة الجماعية
+    // ==========================================================
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            if (addModal) addModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeAddModalBtn) {
+        closeAddModalBtn.addEventListener('click', () => {
+            if (addModal) addModal.classList.add('hidden');
+        });
+    }
+
+    if (addRowBtn) {
+        addRowBtn.addEventListener('click', () => {
+            const firstRow = itemRowsContainer.querySelector('.item-row');
+            if (firstRow) {
+                const newRow = firstRow.cloneNode(true);
+                newRow.querySelectorAll('input').forEach(input => input.value = (input.type === 'number') ? '0.00' : '');
+                const hiddenIdInput = newRow.querySelector('input[name="item_id"]');
+                if(hiddenIdInput) hiddenIdInput.value = ''; // مسح ID الصنف المستنسخ
+                newRow.querySelector('.remove-row-btn').classList.remove('hidden');
+                itemRowsContainer.appendChild(newRow);
             }
         });
     }
 
-    // 2. عند الضغط على زر "إلغاء"، نخفي النافذة
+    if (itemRowsContainer) {
+        itemRowsContainer.addEventListener('click', e => {
+            if (e.target.closest('.remove-row-btn') && itemRowsContainer.querySelectorAll('.item-row').length > 1) {
+                e.target.closest('.item-row').remove();
+            }
+        });
+    }
+    
+    // عند حفظ الأصناف الجديدة من نافذة الإضافة
+    if (addItemForm) {
+        addItemForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // منع إعادة تحميل الصفحة
+            const itemsData = [];
+            itemRowsContainer.querySelectorAll('.item-row').forEach(row => {
+                const nameInput = row.querySelector('input[name="name"]');
+                if (nameInput.value.trim() !== '') {
+                    itemsData.push({
+                        name: nameInput.value,
+                        code: row.querySelector('input[name="code"]').value,
+                        price: row.querySelector('input[name="price"]').value,
+                        cost: row.querySelector('input[name="cost"]').value,
+                        quantity: row.querySelector('input[name="quantity"]').value,
+                    });
+                }
+            });
+
+            if (itemsData.length === 0) {
+                showToast('يرجى إدخال بيانات صنف واحد على الأقل.', 'error');
+                return;
+            }
+
+            fetch("{% url 'add_item' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': addItemForm.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify(itemsData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.message, data.success ? 'info' : 'error');
+                if (data.success) {
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                }
+            });
+        });
+    }
+
+    // ==========================================================
+    //  3. كل ما يخص الجدول الرئيسي (تعديل وحذف موضعي)
+    // ==========================================================
+    if (mainTableBody) {
+        mainTableBody.addEventListener('click', function(e) {
+            const row = e.target.closest('tr.item-row');
+            if (!row) return;
+
+            const editBtn = e.target.closest('.edit-item-btn');
+            const saveBtn = e.target.closest('.save-item-btn');
+            const cancelBtn = e.target.closest('.cancel-edit-btn');
+            const deleteBtn = e.target.closest('.delete-item-btn');
+
+            // --- لو المستخدم ضغط على زر التعديل (القلم) ---
+            if (editBtn) {
+                row.querySelectorAll('.view-mode, .view-mode-actions').forEach(el => el.classList.add('hidden'));
+                row.querySelectorAll('.edit-mode, .edit-mode-actions').forEach(el => el.classList.remove('hidden'));
+            }
+            // --- لو المستخدم ضغط على زر إلغاء التعديل ---
+            else if (cancelBtn) {
+                row.querySelectorAll('.view-mode, .view-mode-actions').forEach(el => el.classList.remove('hidden'));
+                row.querySelectorAll('.edit-mode, .edit-mode-actions').forEach(el => el.classList.add('hidden'));
+            }
+            // --- لو المستخدم ضغط على زر الحذف ---
+            else if (deleteBtn) {
+                itemIdToDelete = row.dataset.itemId;
+                if (deleteModal) deleteModal.classList.remove('hidden');
+            }
+            // --- لو المستخدم ضغط على زر حفظ التعديل (علامة الصح) ---
+            else if (saveBtn) {
+                const itemId = row.dataset.itemId;
+                const itemData = {
+                    name: row.querySelector('input[name="name"]').value,
+                    code: row.querySelector('input[name="code"]').value,
+                    price: row.querySelector('input[name="price"]').value,
+                    quantity: row.querySelector('input[name="quantity"]').value,
+                };
+                
+                fetch(`/accounts/item/${itemId}/edit/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify(itemData)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('تم حفظ التعديلات بنجاح.', 'success');
+                        row.querySelector('td:nth-child(1) .view-mode').textContent = itemData.name;
+                        row.querySelector('td:nth-child(2) .view-mode').textContent = itemData.code || '-';
+                        row.querySelector('td:nth-child(3) .view-mode').textContent = itemData.price;
+                        row.querySelector('td:nth-child(4) .view-mode').textContent = itemData.quantity;
+                        row.querySelectorAll('.view-mode, .view-mode-actions').forEach(el => el.classList.remove('hidden'));
+                        row.querySelectorAll('.edit-mode, .edit-mode-actions').forEach(el => el.classList.add('hidden'));
+                    } else {
+                        showToast(data.message || 'حدث خطأ أثناء الحفظ.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // ==========================================================
+    //  4. التحكم في نافذة تأكيد الحذف
+    // ==========================================================
     if (cancelDeleteBtn) {
         cancelDeleteBtn.addEventListener('click', () => {
             if (deleteModal) deleteModal.classList.add('hidden');
         });
     }
 
-    // 3. عند الضغط على زر "نعم، قم بالحذف"، نرسل الطلب للسيرفر
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', () => {
             if (!itemIdToDelete) return;
-
             fetch(`/accounts/item/${itemIdToDelete}/delete/`, {
-    method: 'POST',
-    headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/json'
-    }   
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
             })
-            .then(response => {
-                // هذا الجزء أفضل من السابق، لأنه يتحقق من نجاح الرد أولاً
-                if (response.ok) {
-                    return response.json();
-                }
-                // إذا فشل الرد، نعرض رسالة خطأ أكثر تحديداً
-                throw new Error('فشل الاتصال بالسيرفر، تأكد أن الرابط صحيح.');
-            })
+            .then(res => res.json())
             .then(data => {
-                showToast(data.message, data.success);
+                showToast(data.message, data.success ? 'success' : 'error');
                 if (data.success) {
-                    // حذف الصف من الجدول في الواجهة
-                    const rowToDelete = document.querySelector(`button[data-item-id='${itemIdToDelete}']`).closest('tr');
-                    if (rowToDelete) rowToDelete.remove();
+                    const rowToDelete = document.querySelector(`tr[data-item-id='${itemIdToDelete}']`);
+                    if(rowToDelete) rowToDelete.remove();
                 }
-            })
-            .catch(err => {
-                // هذا الجزء يلتقط الأخطاء مثل "خطأ في الشبكة"
-                console.error('Error:', err);
-                showToast(err.message, false);
-            })
-            .finally(() => {
-                // في كل الحالات، نخفي النافذة بعد انتهاء العملية
                 if (deleteModal) deleteModal.classList.add('hidden');
-                itemIdToDelete = null;
             });
         });
     }
 });
 </script>
 {% endblock %}
-

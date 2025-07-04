@@ -40,4 +40,9 @@ urlpatterns = [
     path('settings/', views.settings_page_view, name='settings_page'),
     path('add-item/', views.add_item_view, name='add_item'),
     path('item/<int:item_id>/delete/', views.delete_item_view, name='delete_item'),
-   ]
+    path('item/<int:item_id>/edit/', views.edit_item_view, name='edit_item'), 
+    path('inventory/', views.inventory_page_view, name='inventory_page'),
+    path('new-sale/', views.new_sale_view, name='new_sale'),
+    path('journal-entry/', views.journal_entry_view, name='journal_entry'),
+    path('chart-of-accounts/', views.chart_of_accounts_view, name='chart_of_accounts'),
+]

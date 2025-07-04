@@ -1,0 +1,62 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}دليل الحسابات{% endblock %}
+
+{% block page_content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="md:col-span-1">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">إضافة حساب جديد</h2>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="account_name" class="block mb-2 text-sm font-medium">اسم الحساب</label>
+                    <input type="text" name="account_name" id="account_name" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="account_type" class="block mb-2 text-sm font-medium">نوع الحساب الرئيسي</label>
+                    <select name="account_type" id="account_type" required class="w-full px-3 py-2 border rounded-lg">
+                        <option value="" disabled selected>-- اختر النوع --</option>
+                        {% for code, name in account_types %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">
+                        إضافة الحساب
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="md:col-span-2">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">الحسابات الحالية</h2>
+            <div class="overflow-y-auto max-h-96">
+                <table class="min-w-full text-right">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-3 text-sm font-semibold">اسم الحساب</th>
+                            <th class="p-3 text-sm font-semibold">النوع</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for account in accounts %}
+                        <tr>
+                            <td class="p-3">{{ account.name }}</td>
+                            <td class="p-3 text-slate-500">{{ account.get_account_type_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center p-6 text-gray-500">لا توجد حسابات مضافة.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

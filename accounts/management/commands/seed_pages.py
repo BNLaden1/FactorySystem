@@ -18,9 +18,21 @@ PAGES = [
     {'name': 'عروض الأسعار', 'url_name': 'quotes_page', 'icon_class': 'file-text', 'category': 'العمليات'},
     {'name': 'المشتريات', 'url_name': 'purchases_page', 'icon_class': 'shopping-bag', 'category': 'العمليات'},
     {'name': 'الأصناف', 'url_name': 'items_page', 'icon_class': 'package', 'category': 'العمليات'},
+    # ▼▼▼ أضف هذا السطر الجديد ▼▼▼
+    {'name': 'المخزون', 'url_name': 'inventory_page', 'category': 'المخازن', 'icon_class': 'archive'},
     {'name': 'الموظفين والرواتب', 'url_name': 'hr_page', 'icon_class': 'user-cog', 'category': 'الموارد البشرية'},
     {'name': 'التقارير', 'url_name': 'reports_page', 'icon_class': 'bar-chart-3', 'category': 'التحليلات'},
     {'name': 'الإعدادات', 'url_name': 'settings_page', 'icon_class': 'settings', 'category': 'النظام'},
+        {'name': 'الأصناف', 'url_name': 'items_page', 'icon_class': 'package', 'category': 'العمليات'},
+
+    # ▼▼▼ هذا هو السطر الذي يجب إضافته ▼▼▼
+
+    {'name': 'الموظفين والرواتب', 'url_name': 'hr_page', 'icon_class': 'user-cog', 'category': 'الموارد البشرية'},
+    {'name': 'فاتورة مبيعات', 'url_name': 'new_sale', 'category': 'العمليات', 'icon_class': 'receipt'},
+
+    #شجرة الحسابات
+    {'name': 'قيود اليومية', 'url_name': 'journal_entry', 'category': 'الحسابات', 'icon_class': 'book-text'},
+    {'name': 'دليل الحسابات', 'url_name': 'chart_of_accounts', 'category': 'الحسابات', 'icon_class': 'book-key'},
 ]
 
 class Command(BaseCommand):
@@ -50,3 +62,5 @@ class Command(BaseCommand):
                 self.stdout.write(f'Page "{page.name}" already exists.')
 
         self.stdout.write(self.style.SUCCESS('Seeding completed successfully!'))
+
+        

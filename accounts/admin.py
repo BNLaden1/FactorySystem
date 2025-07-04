@@ -51,3 +51,6 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(CompanyProfile, CompanyProfileAdmin)
 admin.site.register(SystemPage, SystemPageAdmin)
+
+from .models import ChartOfAccount
+admin.site.register(ChartOfAccount)

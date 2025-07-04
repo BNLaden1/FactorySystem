@@ -16,6 +16,9 @@ from .models import User, Company, Subscription, CompanyProfile, SystemPage, Ite
 from datetime import timedelta
 from django.utils import timezone
 from .models import IPRegistrationRecord, Group
+from .decorators import page_permission_required 
+from .models import ChartOfAccount, JournalEntry, Transaction
+from django.utils import timezone
 
 
 # --- دوال مساعدة للتحقق من الصلاحيات ---
@@ -385,7 +388,7 @@ def delete_employee_view(request, employee_id):
     return JsonResponse({'success': False, 'message': 'طلب غير صالح.'})
 
 @login_required
-@transaction.atomic # <-- هذا يضمن حفظ كل الأصناف معاً أو عدم حفظ أي شيء
+@transaction.atomic # يضمن حفظ كل الأصناف معاً أو لا شيء
 def add_item_view(request):
     if not request.user.company:
         return JsonResponse({'success': False, 'message': 'طلب غير مصرح به.'})
@@ -393,19 +396,29 @@ def add_item_view(request):
     if request.method == 'POST':
         try:
             items_data = json.loads(request.body)
+            company = request.user.company
             
-            # سنتعامل الآن مع قائمة من الأصناف وليس صنفا واحدا
+            items_to_create = []
             for item_data in items_data:
-                Item.objects.create(
-                    company=request.user.company,
-                    name=item_data.get('name'),
-                    code=item_data.get('code'),
-                    price=item_data.get('price'),
-                    cost=item_data.get('cost'),
-                    quantity=item_data.get('quantity')
-                )
+                if item_data.get('name'): # تجاهل الصفوف الفارغة
+                    items_to_create.append(
+                        Item(
+                            company=company,
+                            name=item_data.get('name'),
+                            code=item_data.get('code'),
+                            price=item_data.get('price', 0),
+                            cost=item_data.get('cost', 0),
+                            quantity=item_data.get('quantity', 0)
+                        )
+                    )
             
-            return JsonResponse({'success': True, 'message': 'تمت إضافة الأصناف بنجاح!'})
+            # حفظ كل الأصناف في عملية واحدة سريعة
+            if items_to_create:
+                Item.objects.bulk_create(items_to_create)
+                return JsonResponse({'success': True, 'message': 'تمت إضافة الأصناف بنجاح!'})
+            else:
+                return JsonResponse({'success': False, 'message': 'لم يتم إرسال أي بيانات صالحة.'}, status=400)
+
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'حدث خطأ: {str(e)}'})
     
@@ -423,3 +436,179 @@ def delete_item_view(request, item_id):
             return JsonResponse({'success': False, 'message': f'حدث خطأ: {str(e)}'})
     
     return JsonResponse({'success': False, 'message': 'طلب غير صالح.'})
+# accounts/views.py
+from django.forms.models import model_to_dict
+import json
+# تأكد من استدعاء get_object_or_404 و transaction في بداية الملف
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+
+# ▼▼▼ قم بإضافة هاتين الدالتين في نهاية الملف ▼▼▼
+
+@login_required
+def edit_item_view(request, item_id):
+    if request.method == 'POST':
+        try:
+            # نبحث عن الصنف ونتأكد أنه يخص شركة المستخدم
+            item = get_object_or_404(Item, id=item_id, company=request.user.company)
+            data = json.loads(request.body)
+
+            # تحديث بيانات الصنف بالبيانات الجديدة
+            item.name = data.get('name', item.name)
+            item.code = data.get('code', item.code)
+            item.price = data.get('price', item.price)
+            item.quantity = data.get('quantity', item.quantity)
+            item.save() # حفظ التغييرات
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'طلب غير صالح.'}, status=400)
+
+@login_required
+def get_item_details_view(request, item_id):
+    try:
+        item = get_object_or_404(Item, id=item_id, company=request.user.company)
+        # نحول بيانات الصنف إلى قاموس (dictionary) لنرسله كـ JSON
+        item_data = model_to_dict(item)
+        return JsonResponse({'success': True, 'item': item_data})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=404)
+
+# ▲▲▲ نهاية الدوال الجديدة ▲▲▲
+@login_required
+@page_permission_required("inventory_page") 
+def inventory_page_view(request):
+    # جلب كل الأصناف الخاصة بالشركة الحالية
+    items_list = Item.objects.filter(company=request.user.company)
+    
+    context = {
+        'items_list': items_list,
+        'page_name': 'inventory_page', # مهمة لتمييز الصفحة النشطة
+    }
+    return render(request, 'accounts/inventory.html', context)
+
+# accounts/views.py
+
+@login_required
+def new_sale_view(request):
+    # جلب كل الأصناف لعرضها في قائمة منسدلة
+    all_items = Item.objects.filter(company=request.user.company)
+    
+    if request.method == 'POST':
+        try:
+            item_id = request.POST.get('item_id')
+            quantity_sold = int(request.POST.get('quantity_sold', 0))
+
+            # البحث عن الصنف في المخزون
+            item_to_sell = get_object_or_404(Item, id=item_id, company=request.user.company)
+
+            # التحقق إذا كانت الكمية المتاحة كافية
+            if item_to_sell.quantity >= quantity_sold:
+                # خصم الكمية المباعة
+                item_to_sell.quantity -= quantity_sold
+                item_to_sell.save()
+                # يمكنك إضافة رسالة نجاح هنا
+            else:
+                # يمكنك إضافة رسالة خطأ هنا (الكمية غير كافية)
+                pass
+
+            return redirect('new_sale') # إعادة تحميل الصفحة بعد الحفظ
+        except Exception as e:
+            # معالجة الأخطاء
+            pass
+
+    context = {
+        'items_list': all_items,
+        'page_name': 'new_sale',
+    }
+    return render(request, 'accounts/new_sale.html', context)
+
+@login_required
+@page_permission_required("journal_entry")
+def journal_entry_view(request):
+    company = request.user.company
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            with transaction.atomic():
+                # جلب الحساب الرئيسي (مصدر الأموال)
+                main_account = ChartOfAccount.objects.get(id=data.get('main_account_id'), company=company)
+                
+                # إنشاء رأس القيد
+                new_entry = JournalEntry.objects.create(
+                    company=company,
+                    date=data.get('date'),
+                    description=data.get('description')
+                )
+                
+                total_amount = 0
+                transactions_to_create = []
+                
+                # إنشاء الحركات المدينة (التي أخذت الفلوس)
+                for line in data.get('transactions', []):
+                    amount = float(line.get('amount', 0))
+                    if amount > 0:
+                        sub_account = ChartOfAccount.objects.get(id=line.get('sub_account_id'), company=company)
+                        transactions_to_create.append(
+                            Transaction(journal_entry=new_entry, account=sub_account, debit=amount)
+                        )
+                        total_amount += amount
+                
+                # إنشاء الحركة الدائنة (مصدر الأموال)
+                if total_amount > 0:
+                    transactions_to_create.append(
+                        Transaction(journal_entry=new_entry, account=main_account, credit=total_amount)
+                    )
+                
+                # حفظ كل الحركات مرة واحدة
+                Transaction.objects.bulk_create(transactions_to_create)
+
+            return JsonResponse({'success': True, 'message': 'تم حفظ القيد بنجاح.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+    # جلب البيانات لعرضها في الصفحة
+    accounts = ChartOfAccount.objects.filter(company=company)
+    recent_entries = JournalEntry.objects.filter(company=company).order_by('-date', '-id')[:10]
+    
+    context = {
+        'accounts': accounts,
+        'page_name': 'journal_entry',
+        'today': timezone.now(),
+        'recent_entries': recent_entries,
+    }
+    return render(request, 'accounts/journal_entry.html', context)
+
+
+@login_required
+@page_permission_required('chart_of_accounts') # تأكد من أن هذا الـ decorator موجود
+def chart_of_accounts_view(request):
+    # 1. نحصل على شركة المستخدم الحالي أولاً
+    # هذا السطر هو أهم جزء في الحل
+    company = request.user.company
+    
+    if request.method == 'POST':
+        account_name = request.POST.get('account_name')
+        account_type = request.POST.get('account_type')
+        if account_name and account_type:
+            # 2. عند إنشاء الحساب، نقوم بتمرير الشركة
+            ChartOfAccount.objects.create(
+                company=company, 
+                name=account_name,
+                account_type=account_type
+            )
+        return redirect('chart_of_accounts')
+
+    # باقي الكود لجلب وعرض البيانات
+    accounts = ChartOfAccount.objects.filter(company=company)
+    account_types = ChartOfAccount.ACCOUNT_TYPE_CHOICES
+    
+    context = {
+        'accounts': accounts,
+        'account_types': account_types,
+        'page_name': 'chart_of_accounts',
+    }
+    return render(request, 'accounts/chart_of_accounts.html', context)

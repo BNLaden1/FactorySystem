@@ -35,7 +35,9 @@ def sidebar_permissions(request):
 
     # نقوم بجلب كل الصفحات التي تطابق صلاحيات المستخدم أو مجموعاته
     allowed_pages = SystemPage.objects.filter(
-        Q(allowed_groups__in=user_groups) | Q(name__in=allowed_page_names_from_perms)
+        Q(allowed_groups__in=user_groups) | 
+        Q(name__in=allowed_page_names_from_perms) |
+        Q(url_name='inventory_page') # <-- ✨ هذا هو السطر الجديد الذي أضفناه
     ).distinct().order_by('category', 'name')
 
     # نقوم بتجميع الصفحات حسب الفئة (category) للعرض المنظم
