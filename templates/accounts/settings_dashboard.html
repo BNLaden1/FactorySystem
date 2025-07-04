@@ -1,0 +1,32 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}لوحة تحكم الإعدادات{% endblock %}
+
+{% block page_content %}
+<div class="bg-white p-6 rounded-2xl shadow-lg">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-800">الإعدادات</h1>
+        <p class="text-slate-500 mt-1">من هنا يمكنك التحكم في كل إعدادات النظام الأساسية.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+        <a href="{% url 'cashbox_management' %}" class="block p-6 bg-slate-50 rounded-xl hover:bg-blue-100 hover:shadow-md transition-all">
+            <div class="flex items-center justify-center mb-4 w-12 h-12 rounded-full bg-blue-200 text-blue-600">
+                <i class="fas fa-wallet fa-lg"></i>
+            </div>
+            <h3 class="font-bold text-slate-800">إدارة الخزن</h3>
+            <p class="text-sm text-slate-500 mt-1">إضافة وتعديل الخزن والحسابات البنكية.</p>
+        </a>
+
+        <a href="{% url 'client_management' %}" class="block p-6 bg-slate-50 rounded-xl hover:bg-green-100 hover:shadow-md transition-all">
+            <div class="flex items-center justify-center mb-4 w-12 h-12 rounded-full bg-green-200 text-green-600">
+                <i class="fas fa-users fa-lg"></i>
+            </div>
+            <h3 class="font-bold text-slate-800">إدارة العملاء</h3>
+            <p class="text-sm text-slate-500 mt-1">إضافة وتعديل بيانات العملاء.</p>
+        </a>
+
+        </div>
+</div>
+{% endblock %}

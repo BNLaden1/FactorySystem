@@ -1,58 +1,171 @@
 {% extends "accounts/base.html" %}
 
-{% block title %}تسجيل حركة خزنة{% endblock %}
+{% block title %}تسجيل حركة يومية{% endblock %}
 
 {% block page_content %}
-<div class="bg-white p-8 rounded-2xl shadow-lg max-w-2xl mx-auto">
-    <h1 class="text-2xl font-bold text-slate-800 mb-6 text-center">تسجيل حركة مالية جديدة</h1>
-    
-    <form method="POST" class="space-y-6">
+<div class="bg-white p-8 rounded-2xl shadow-lg max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold text-slate-800 mb-8 text-center">تسجيل حركة يومية</h1>
+
+    <form id="transactions-form" method="POST">
         {% csrf_token %}
-        
-        <div>
-            <label for="cashbox" class="block mb-2 text-sm font-medium">الخزنة / الحساب</label>
-            <select name="cashbox" id="cashbox" required class="w-full px-3 py-2 border rounded-lg">
-                <option value="" disabled selected>-- اختر الخزنة --</option>
-                {% for box in cashboxes %}
-                <option value="{{ box.id }}">{{ box.name }} (الرصيد: {{ box.balance }})</option>
-                {% endfor %}
-            </select>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div>
-                <label for="transaction_type" class="block mb-2 text-sm font-medium">نوع العملية</label>
-                <select name="transaction_type" id="transaction_type" required class="w-full px-3 py-2 border rounded-lg">
-                    {% for code, name in transaction_types %}
-                    <option value="{{ code }}">{{ name }}</option>
-                    {% endfor %}
-                </select>
+                <label for="entry-description" class="block mb-2 text-sm font-medium text-gray-700">البيان العام</label>
+                <input type="text" name="description" id="entry-description" required
+                    placeholder="مثال: مصاريف الأسبوع الأول" class="w-full px-3 py-2 border rounded-lg">
             </div>
             <div>
-                <label for="amount" class="block mb-2 text-sm font-medium">المبلغ</label>
-                <input type="number" step="0.01" name="amount" id="amount" required class="w-full px-3 py-2 border rounded-lg">
+                <label for="entry-date" class="block mb-2 text-sm font-medium text-gray-700">التاريخ</label>
+                <input type="date" name="date" id="entry-date" value="{{ today|date:'Y-m-d' }}" required
+                    class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700">رقم القيد</label>
+                <div class="w-full px-3 py-2 border rounded-lg bg-gray-200 text-gray-500">
+                    # (سيظهر تلقائيًا بعد الحفظ)
+                </div>
             </div>
         </div>
 
-        <div>
-            <label for="category" class="block mb-2 text-sm font-medium">تصنيف الحركة</label>
-            <select name="category" id="category" required class="w-full px-3 py-2 border rounded-lg">
-                {% for code, name in categories %}
-                <option value="{{ code }}">{{ name }}</option>
-                {% endfor %}
-            </select>
+        <div class="overflow-x-auto border rounded-lg">
+            <table class="min-w-full">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="p-3 ...">الحساب الرئيسي</th>
+                        <th class="p-3 ..." colspan="2">الحساب الفرعي</th>
+                        <th class="p-3 ...">الحركة</th>
+                        <th class="p-3 ...">وارد</th>
+                        <th class="p-3 ...">صادر</th>
+                        <th class="p-3 ...">البيان</th>
+                        <th class="p-3 w-12"></th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-container">
+                </tbody>
+            </table>
         </div>
 
-        <div>
-            <label for="description" class="block mb-2 text-sm font-medium">البيان (الوصف)</label>
-            <textarea name="description" id="description" rows="3" required class="w-full px-3 py-2 border rounded-lg"></textarea>
-        </div>
-        
-        <div class="pt-4 text-center">
-            <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">
-                حفظ الحركة
+        <div class="flex justify-between items-center mt-6">
+            <button type="button" id="add-transaction-row"
+                class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>إضافة حركة</span>
+            </button>
+            <button type="submit" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">
+                حفظ الحركات
             </button>
         </div>
     </form>
 </div>
+
+<template id="transaction-row-template">
+    <tr class="transaction-row">
+        <td class="p-2">
+            <select name="main_account" required class="w-full px-2 py-2 border rounded-lg">
+                <option value="">-- اختر --</option>
+                {% for box in cashboxes %}<option value="{{ box.id }}">{{ box.name }}</option>{% endfor %}
+            </select>
+        </td>
+
+        <td class="p-2">
+            <select name="sub_account_type" class="sub-account-type w-full px-2 py-2 border rounded-lg">
+                <option value="">-- النوع --</option>
+                <option value="client">عميل</option>
+                <option value="supplier">مورد</option>
+                <option value="employee">موظف</option>
+                <option value="partner">شريك</option>
+                <option value="expense">مصروف</option>
+            </select>
+        </td>
+        <td class="p-2">
+            <select name="sub_account_id" required class="sub-account-id w-full px-2 py-2 border rounded-lg">
+                <option value="">-- اختر --</option>
+            </select>
+        </td>
+        <td class="p-2">
+    <label for="transaction_type" class="sr-only">نوع الحركة</label>
+    <select name="transaction_type" id="transaction_type" required class="w-full px-2 py-2 border rounded-lg">
+        <option value="" disabled selected>-- اختر الحركة --</option>
+        {% for code, name in transaction_types %}
+        <option value="{{ code }}">{{ name }}</option>
+        {% endfor %}
+    </select>
+</td>
+
+        <td class="p-2"><input type="number" step="0.01" name="debit" value="0.00"
+                class="w-full px-2 py-2 border rounded-lg font-mono"></td>
+        <td class="p-2"><input type="number" step="0.01" name="credit" value="0.00"
+                class="w-full px-2 py-2 border rounded-lg font-mono"></td>
+
+        <td class="p-2"><input type="text" name="line_description" placeholder="وصف للحركة"
+                class="w-full px-2 py-2 border rounded-lg"></td>
+        <td class="p-2 text-center"><button type="button"
+                class="remove-transaction-row text-red-500 hover:text-red-700">&times;</button></td>
+    </tr>
+</template>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ✨ 1. الطريقة الجديدة والآمنة لاستقبال البيانات من جانغو
+    const subAccountData = JSON.parse('{{ sub_account_json|escapejs }}');
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('transactions-container');
+        const template = document.getElementById('transaction-row-template');
+        const addRowBtn = document.getElementById('add-transaction-row');
+
+        function addRow() {
+            if (!template || !container) return;
+            const newRow = template.content.cloneNode(true);
+            container.appendChild(newRow);
+            attachRowListeners(container.lastElementChild);
+        }
+
+        function removeRow(e) {
+            if (container && container.children.length > 1) {
+                e.target.closest('tr').remove();
+            }
+        }
+
+        // ✨ 2. هذه الدالة تقوم بتحديث القائمة الثانية بناءً على اختيارك
+        function updateSubAccountOptions(e) {
+            const typeSelect = e.target;
+            const row = typeSelect.closest('tr');
+            const idSelect = row.querySelector('.sub-account-id');
+            const selectedType = typeSelect.value;
+
+            // مسح الخيارات القديمة
+            idSelect.innerHTML = '<option value="">-- اختر --</option>';
+
+            if (subAccountData[selectedType]) {
+                subAccountData[selectedType].forEach(item => {
+                    const option = document.createElement('option');
+                    // نضبط القيمة لتكون متوافقة مع ما سنرسله للسيرفر
+                    option.value = `${selectedType}-${item.id}`;
+                    // نضبط النص ليظهر للمستخدم (اسم الموظف هو username)
+                    option.textContent = item.name || item.username;
+                    idSelect.appendChild(option);
+                });
+            }
+        }
+
+        function attachRowListeners(row) {
+            const removeBtn = row.querySelector('.remove-transaction-row');
+            if (removeBtn) removeBtn.addEventListener('click', removeRow);
+
+            // ربط دالة التحديث بحدث التغيير
+            const typeSelect = row.querySelector('.sub-account-type');
+            if (typeSelect) typeSelect.addEventListener('change', updateSubAccountOptions);
+        }
+
+        if (addRowBtn) addRowBtn.addEventListener('click', addRow);
+
+        // إضافة صف واحد فارغ عند تحميل الصفحة
+        addRow();
+    });
+</script>
 {% endblock %}

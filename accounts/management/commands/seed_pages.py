@@ -22,8 +22,7 @@ PAGES = [
     {'name': 'المخزون', 'url_name': 'inventory_page', 'category': 'المخازن', 'icon_class': 'archive'},
     {'name': 'الموظفين والرواتب', 'url_name': 'hr_page', 'icon_class': 'user-cog', 'category': 'الموارد البشرية'},
     {'name': 'التقارير', 'url_name': 'reports_page', 'icon_class': 'bar-chart-3', 'category': 'التحليلات'},
-    {'name': 'الإعدادات', 'url_name': 'settings_page', 'icon_class': 'settings', 'category': 'النظام'},
-        {'name': 'الأصناف', 'url_name': 'items_page', 'icon_class': 'package', 'category': 'العمليات'},
+    {'name': 'الأصناف', 'url_name': 'items_page', 'icon_class': 'package', 'category': 'العمليات'},
 
     # ▼▼▼ هذا هو السطر الذي يجب إضافته ▼▼▼
 
@@ -41,7 +40,8 @@ PAGES = [
     {'name': 'إدارة الخزن', 'url_name': 'cashbox_management', 'category': 'الحسابات', 'icon_class': 'wallet'},
     {'name': 'تسجيل حركة خزنة', 'url_name': 'new_cashbox_transaction', 'category': 'الحسابات', 'icon_class': 'receipt'},
     {'name': 'تقرير حركة خزنة', 'url_name': 'cashbox_report', 'category': 'الحسابات', 'icon_class': 'book-copy'},
-]
+# ▼▼▼ أضف هذا السطر الجديد والموحد ▼▼▼
+    {'name': 'الإعدادات', 'url_name': 'settings_dashboard', 'category': 'النظام', 'icon_class': 'settings'},]
 
 class Command(BaseCommand):
     help = 'Seeds the database with initial SystemPage data for the sidebar.'

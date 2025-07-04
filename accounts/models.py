@@ -248,3 +248,44 @@ class CashboxTransaction(models.Model):
         ordering = ['-date']
         
 # ▲▲▲ نهاية الكود الجديد ▲▲▲
+
+# accounts/models.py
+
+# ... (كل النماذج الموجودة بالفعل تبقى كما هي) ...
+
+# ▼▼▼ بداية الكود الجديد للعملاء والموردين ▼▼▼
+
+class Client(models.Model):
+    """
+    نموذج لتخزين بيانات العملاء.
+    """
+    name = models.CharField(max_length=255, verbose_name="اسم العميل")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="رقم الهاتف")
+    address = models.CharField(max_length=255, blank=True, null=True, verbose_name="العنوان")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='clients')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "عميل"
+        verbose_name_plural = "العملاء"
+
+
+class Supplier(models.Model):
+    """
+    نموذج لتخزين بيانات الموردين.
+    """
+    name = models.CharField(max_length=255, verbose_name="اسم المورد")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="رقم الهاتف")
+    address = models.CharField(max_length=255, blank=True, null=True, verbose_name="العنوان")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='suppliers')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "مورد"
+        verbose_name_plural = "الموردين"
+
+# ▲▲▲ نهاية الكود الجديد ▲▲▲

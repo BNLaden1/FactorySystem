@@ -48,4 +48,6 @@ urlpatterns = [
     path('cashboxes/', views.cashbox_management_view, name='cashbox_management'),
     path('cashbox-transaction/new/', views.new_cashbox_transaction_view, name='new_cashbox_transaction'),
     path('cashbox-report/', views.cashbox_report_view, name='cashbox_report'),
+    path('clients/manage/', views.client_management_view, name='client_management'),
+    path('settings-dashboard/', views.settings_dashboard_view, name='settings_dashboard'),
 ]

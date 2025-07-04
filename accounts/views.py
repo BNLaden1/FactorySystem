@@ -10,6 +10,8 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import Group
 from django.middleware.csrf import get_token
 from django.db import transaction
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # (!!!) تأكد من أن هذا السطر يستدعي كل الموديلات الصحيحة (!!!)
 from .models import User, Company, Subscription, CompanyProfile, SystemPage, Item
@@ -17,7 +19,7 @@ from datetime import timedelta
 from django.utils import timezone
 from .models import IPRegistrationRecord, Group
 from .decorators import page_permission_required 
-from .models import ChartOfAccount, JournalEntry, Transaction, Cashbox, CashboxTransaction
+from .models import ChartOfAccount, JournalEntry, Transaction, Cashbox, CashboxTransaction, Client, Supplier
 from django.utils import timezone
 from decimal import Decimal
 
@@ -684,53 +686,37 @@ def new_cashbox_transaction_view(request):
     company = request.user.company
     
     if request.method == 'POST':
-        try:
-            cashbox_id = request.POST.get('cashbox')
-            transaction_type = request.POST.get('transaction_type')
-            amount = Decimal(request.POST.get('amount', 0)) # تحويل المبلغ لرقم عشري
-            category = request.POST.get('category')
-            description = request.POST.get('description')
+        # سنقوم ببرمجة منطق الحفظ لاحقًا
+        pass
 
-            if amount > 0 and cashbox_id and transaction_type and category:
-                with transaction.atomic():
-                    # نستخدم select_for_update لقفل الخزنة ومنع أي تعديل عليها حتى انتهاء عمليتنا
-                    cashbox_instance = Cashbox.objects.select_for_update().get(id=cashbox_id, company=company)
-                    
-                    # إنشاء حركة الخزنة
-                    CashboxTransaction.objects.create(
-                        company=company,
-                        cashbox=cashbox_instance,
-                        transaction_type=transaction_type,
-                        amount=amount,
-                        category=category,
-                        description=description
-                    )
-
-                    # ✨ تحديث رصيد الخزنة تلقائيًا ✨
-                    if transaction_type == 'in': # في حالة التحصيل
-                        cashbox_instance.balance += amount
-                    elif transaction_type == 'out': # في حالة الصرف
-                        cashbox_instance.balance -= amount
-                    
-                    cashbox_instance.save()
-
-                return redirect('cashbox_management') # توجيه المستخدم لصفحة الخزن ليرى الرصيد المحدث
-        except Exception as e:
-            # يمكنك إضافة رسالة خطأ هنا
-            print(e) # لطباعة الخطأ في التيرمينال أثناء التطوير
-
-    # جلب البيانات لعرضها في الفورم
-    cashboxes = Cashbox.objects.filter(company=company, is_active=True)
-    transaction_types = CashboxTransaction.TRANSACTION_TYPE_CHOICES
-    categories = CashboxTransaction.CATEGORY_CHOICES
+    # --- ✨ بداية الكود الجديد والمُحسَّن لجلب البيانات ✨ ---
     
+    # 1. جلب القوائم من قاعدة البيانات
+    clients = list(Client.objects.filter(company=company).values('id', 'name'))
+    suppliers = list(Supplier.objects.filter(company=company).values('id', 'name'))
+    employees = list(User.objects.filter(company=company, is_staff=True).exclude(is_superuser=True).values('id', 'username'))
+    # نفترض أن المصروفات موجودة في دليل الحسابات
+    expenses = list(ChartOfAccount.objects.filter(company=company, account_type='Expense').values('id', 'name'))
+
+    # 2. تجميع كل البيانات في قاموس واحد
+    sub_account_data = {
+        'client': clients,
+        'supplier': suppliers,
+        'employee': employees,
+        'expense': expenses,
+    }
+
     context = {
-        'cashboxes': cashboxes,
-        'transaction_types': transaction_types,
-        'categories': categories,
+        'cashboxes': Cashbox.objects.filter(company=company, is_active=True),
+        'categories': CashboxTransaction.CATEGORY_CHOICES,
         'page_name': 'new_cashbox_transaction',
+        'today': timezone.now(),
+        # ✨ 3. نرسل البيانات كـ JSON string آمن للواجهة
+        'sub_account_json': json.dumps(sub_account_data)
     }
     return render(request, 'accounts/new_cashbox_transaction.html', context)
+
+
 @login_required
 @page_permission_required("cashbox_report")
 def cashbox_report_view(request):
@@ -764,3 +750,34 @@ def cashbox_report_view(request):
         'page_name': 'cashbox_report',
     }
     return render(request, 'accounts/cashbox_report.html', context)
+
+@login_required
+@page_permission_required("client_management")
+def client_management_view(request):
+    company = request.user.company
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
+        if name:
+            Client.objects.create(
+                company=company,
+                name=name,
+                phone=phone,
+                address=address
+            )
+        return redirect('client_management')
+
+    clients = Client.objects.filter(company=company)
+    context = {
+        'clients': clients,
+        'page_name': 'client_management',
+    }
+    return render(request, 'accounts/client_management.html', context)
+@login_required
+@page_permission_required("settings_dashboard")
+def settings_dashboard_view(request):
+    context = {
+        'page_name': 'settings_dashboard',
+    }
+    return render(request, 'accounts/settings_dashboard.html', context)

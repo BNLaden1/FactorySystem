@@ -1,0 +1,7 @@
+[flake8]
+# تجاهل هذه الأخطاء:
+# E501: السطر طويل جدًا (سنسمح بـ 119 حرفًا بدلاً من 79)
+# W503: كسر السطر قبل المعامل الثنائي (Binary operator)
+ignore = E501, W503
+max-line-length = 119
+exclude = .git,__pycache__,venv,*/migrations/*
