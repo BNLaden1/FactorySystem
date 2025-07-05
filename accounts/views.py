@@ -270,7 +270,11 @@ def messages_page_view(request): return render(request, 'accounts/coming_soon.ht
 @login_required
 def hr_page_view(request): return render(request, 'accounts/coming_soon.html', {'page_title': 'الموظفين والرواتب'})
 @login_required
-def reports_page_view(request): return render(request, 'accounts/coming_soon.html', {'page_title': 'التقارير'})
+def reports_page_view(request):
+    context = {
+        'page_name': 'reports_page'
+    }
+    return render(request, 'accounts/reports_dashboard.html', context)
 @login_required
 def pos_page_view(request): return render(request, 'accounts/coming_soon.html', {'page_title': 'الخزن / نقاط البيع'})
 @login_required
@@ -781,3 +785,27 @@ def settings_dashboard_view(request):
         'page_name': 'settings_dashboard',
     }
     return render(request, 'accounts/settings_dashboard.html', context)
+
+ #---- ملف التقارير -----#
+
+@login_required
+def profit_loss_report_view(request):
+    """
+    View مؤقت لعرض صفحة تقرير الأرباح والخسائر.
+    """
+    context = {
+        'page_title': 'تقرير الأرباح والخسائر',
+        'page_name': 'reports_page' # لتبقى أيقونة التقارير الرئيسية نشطة
+    }
+    return render(request, 'accounts/coming_soon.html', context)
+
+@login_required
+def client_debts_report_view(request):
+    """
+    View مؤقت لعرض صفحة تقرير مديونية العملاء.
+    """
+    context = {
+        'page_title': 'تقرير مديونية العملاء',
+        'page_name': 'reports_page' # لتبقى أيقونة التقارير الرئيسية نشطة
+    }
+    return render(request, 'accounts/coming_soon.html', context)
