@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Project
-from .forms import ProjectForm
+from .forms import ProjectForm, CostItemForm
 
 # 1. دالة عرض قائمة المشاريع
 @login_required
@@ -75,21 +75,36 @@ def bulk_add_projects_view(request):
 
 @login_required
 def project_detail_view(request, project_id):
-    # الخطوة 1: نجلب المشروع المحدد من قاعدة البيانات
-    # إذا لم يكن المشروع موجوداً، ستظهر صفحة خطأ 404 تلقائياً
     project = get_object_or_404(Project, id=project_id)
 
-    # الخطوة 2: نجلب كل بنود التكاليف والدفعات المرتبطة بهذا المشروع
+    # هذا الجزء سيتعامل مع الفورم عند إرسال البيانات (POST)
+    if request.method == 'POST':
+        cost_form = CostItemForm(request.POST)
+        if cost_form.is_valid():
+            # لا نحفظ الفورم مباشرة، بل نجهز البيانات أولاً
+            new_cost_item = cost_form.save(commit=False)
+            # نربط بند التكلفة الجديد بالمشروع الحالي
+            new_cost_item.project = project
+            new_cost_item.save() # الآن نقوم بالحفظ
+            messages.success(request, 'تمت إضافة بند التكلفة بنجاح.')
+            # نعيد تحميل نفس الصفحة لنرى البند الجديد في الجدول
+            return redirect('operations:project-detail', project_id=project.id)
+        else:
+            messages.error(request, 'حدث خطأ في بيانات بند التكلفة.')
+    
+    # هذا الجزء يعمل دائماً، سواء كان الطلب GET أو POST فاشل
     cost_items = project.cost_items.all().order_by('-date')
     payments = project.payments.all().order_by('-date')
+    
+    # ننشئ فورم فارغ لعرضه في الصفحة
+    cost_form = CostItemForm()
 
-    # الخطوة 3: نجهز البيانات لإرسالها للواجهة
     context = {
         'project': project,
         'cost_items': cost_items,
         'payments': payments,
+        'cost_form': cost_form, # <<< نرسل الفورم الفارغ للواجهة
         'page_title': f"تفاصيل مشروع: {project.name}"
     }
 
-    # نحدد ملف الواجهة الذي سيعرض هذه البيانات
     return render(request, 'operations/project_detail.html', context)

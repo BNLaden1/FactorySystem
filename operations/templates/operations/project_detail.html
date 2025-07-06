@@ -53,9 +53,44 @@
         <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h3 class="text-xl font-bold text-slate-800 mb-4">بنود التكاليف</h3>
             {# فورم إضافة بند تكلفة جديد (سنفعله لاحقاً) #}
-            <div class="bg-slate-50 p-4 rounded-lg mb-4">
-                <p class="text-center text-slate-500">فورم إضافة بند تكلفة جديد سيظهر هنا</p>
-            </div>
+            <form method="POST" class="bg-slate-50 p-4 rounded-lg mb-4 border border-slate-200">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    {# حقل التاريخ #}
+                    <div class="md:col-span-1">
+                        <label for="{{ cost_form.date.id_for_label }}"
+                            class="block mb-1 text-xs font-medium text-gray-600">التاريخ</label>
+                        {{ cost_form.date }}
+                    </div>
+                    {# حقل البيان #}
+                    <div class="md:col-span-3">
+                        <label for="{{ cost_form.description.id_for_label }}"
+                            class="block mb-1 text-xs font-medium text-gray-600">البيان</label>
+                        {{ cost_form.description }}
+                    </div>
+                    {# حقل الكمية #}
+                    <div class="md:col-span-1">
+                        <label for="{{ cost_form.quantity.id_for_label }}"
+                            class="block mb-1 text-xs font-medium text-gray-600">الكمية</label>
+                        {{ cost_form.quantity }}
+                    </div>
+                    {# حقل السعر #}
+                    <div class="md:col-span-1">
+                        <label for="{{ cost_form.unit_price.id_for_label }}"
+                            class="block mb-1 text-xs font-medium text-gray-600">سعر الوحدة</label>
+                        {{ cost_form.unit_price }}
+                    </div>
+                    {# زر الحفظ #}
+                    <div class="md:col-span-2">
+                        <button type="submit"
+                            class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">
+                            <i data-lucide="plus" class="inline-block w-4 h-4 ml-1"></i>
+                            إضافة البند
+                        </button>
+                    </div>
+                </div>
+            </form>
+
             
             <table class="w-full text-right text-sm">
                 <thead>

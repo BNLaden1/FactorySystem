@@ -48,7 +48,7 @@ class CostItem(models.Model):
     project = models.ForeignKey(Project, related_name='cost_items', on_delete=models.CASCADE, verbose_name="المشروع")
     date = models.DateField(verbose_name="التاريخ")
     description = models.CharField(max_length=255, verbose_name="البيان (نوع الخامة أو الخدمة)")
-    quantity = models.FloatField(default=1, verbose_name="الكمية")
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1, verbose_name="الكمية")
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="سعر الوحدة")
 
     @property
