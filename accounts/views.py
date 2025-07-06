@@ -22,6 +22,7 @@ from .decorators import page_permission_required
 from .models import ChartOfAccount, JournalEntry, Transaction, Cashbox, CashboxTransaction, Client, Supplier
 from django.utils import timezone
 from decimal import Decimal
+from .models import Company, Client
 
 
 
@@ -756,28 +757,66 @@ def cashbox_report_view(request):
     return render(request, 'accounts/cashbox_report.html', context)
 
 @login_required
-@page_permission_required("client_management")
 def client_management_view(request):
-    company = request.user.company
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        phone = request.POST.get('phone')
-        address = request.POST.get('address')
-        if name:
-            Client.objects.create(
-                company=company,
-                name=name,
-                phone=phone,
-                address=address
-            )
-        return redirect('client_management')
+    # الحالة الأولى: إذا كان المستخدم هو السوبر يوزر
+    if request.user.is_superuser:
+        if request.method == 'POST':
+            company_id = request.POST.get('company')
+            name = request.POST.get('name', '').strip()
 
-    clients = Client.objects.filter(company=company)
-    context = {
-        'clients': clients,
-        'page_name': 'client_management',
-    }
-    return render(request, 'accounts/client_management.html', context)
+            if name and company_id:
+                company = Company.objects.get(id=company_id)
+                Client.objects.create(
+                    company=company,
+                    name=name,
+                    phone=request.POST.get('phone'),
+                    address=request.POST.get('address')
+                )
+                messages.success(request, f'تم إضافة العميل "{name}" إلى شركة "{company.name}" بنجاح.')
+                return redirect('client_management')
+            else:
+                messages.error(request, 'خطأ: للسوبر يوزر، يجب اختيار الشركة وإدخال اسم العميل.')
+        
+        # في كل الأحوال، السوبر يوزر يرى كل العملاء وكل الشركات
+        all_clients = Client.objects.all().order_by('company__name', 'name')
+        all_companies = Company.objects.all()
+        context = {
+            'clients': all_clients,
+            'companies': all_companies,
+            'is_superuser_view': True, # سنستخدم هذا المتغير في الواجهة
+            'page_name': 'client_management',
+        }
+        return render(request, 'accounts/client_management.html', context)
+    
+    # الحالة الثانية: إذا كان المستخدم مدير شركة (الكود القديم مع تحسينات)
+    else:
+        company = request.user.company
+        if not company:
+            messages.error(request, 'حسابك غير مرتبط بشركة.')
+            return redirect('dashboard')
+
+        if request.method == 'POST':
+            name = request.POST.get('name', '').strip()
+            if name:
+                Client.objects.create(
+                    company=company,
+                    name=name,
+                    phone=request.POST.get('phone'),
+                    address=request.POST.get('address')
+                )
+                messages.success(request, 'تمت إضافة العميل بنجاح.')
+            else:
+                messages.error(request, 'خطأ: حقل اسم العميل لا يمكن أن يكون فارغًا.')
+            return redirect('client_management')
+
+        company_clients = Client.objects.filter(company=company)
+        context = {
+            'clients': company_clients,
+            'page_name': 'client_management',
+        }
+        return render(request, 'accounts/client_management.html', context)
+
+
 @login_required
 @page_permission_required("settings_dashboard")
 def settings_dashboard_view(request):

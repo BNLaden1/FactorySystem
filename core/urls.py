@@ -20,7 +20,10 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # هذا هو السطر الصحيح الذي يوجه كل ما يتعلق بالحسابات
-    # إلى الملف الفرعي الخاص به
+    # الرابط الخاص بالحسابات (موجود عندك بالفعل)
     path('accounts/', include('accounts.urls')),
+
+    # ▼▼▼ أضف هذا السطر الناقص ▼▼▼
+    # هذا السطر يخبر المشروع بوجود روابط تطبيق العمليات
+    path('operations/', include('operations.urls')),
 ]

@@ -1,0 +1,95 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}
+    إضافة مجموعة مشاريع
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="bg-white p-8 rounded-2xl shadow-lg mx-auto">
+
+    <div class="mb-6 border-b pb-4">
+        <h2 class="text-2xl font-bold text-slate-800">إضافة مجموعة مشاريع جديدة</h2>
+        <p class="text-slate-500 mt-1">أضف مشروعًا واحدًا أو أكثر بالضغط على الزر.</p>
+    </div>
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }} {# سطر ضروري جداً لعمل الـ formset #}
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="p-3 font-semibold text-slate-500 uppercase tracking-wider">العميل</th>
+                        <th class="p-3 font-semibold text-slate-500 uppercase tracking-wider">اسم الأوردر/المشروع</th>
+                        <th class="p-3 font-semibold text-slate-500 uppercase tracking-wider">تاريخ البدء</th>
+                        <th class="p-3 font-semibold text-slate-500 uppercase tracking-wider">تاريخ التسليم</th>
+                        <th class="p-3 font-semibold text-slate-500 uppercase tracking-wider">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="form-container" class="bg-white divide-y divide-slate-200">
+                    {% for form in formset %}
+                        <tr class="project-form">
+                            <td class="p-2">{{ form.client }}</td>
+                            <td class="p-2">{{ form.name }}</td>
+                            <td class="p-2">{{ form.start_date }}</td>
+                            <td class="p-2">{{ form.due_date }}</td>
+                            <td class="p-2">{{ form.status }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {# ▼▼▼ هذا هو القالب الذي سنقوم بنسخه ▼▼▼ #}
+        <template id="form-template">
+            <tr class="project-form">
+                <td class="p-2">{{ formset.empty_form.client }}</td>
+                <td class="p-2">{{ formset.empty_form.name }}</td>
+                <td class="p-2">{{ formset.empty_form.start_date }}</td>
+                <td class="p-2">{{ formset.empty_form.due_date }}</td>
+                <td class="p-2">{{ formset.empty_form.status }}</td>
+            </tr>
+        </template>
+
+        <div class="mt-8 pt-5 border-t flex justify-between items-center">
+            {# ▼▼▼ هذا هو الزر الجديد ▼▼▼ #}
+            <button type="button" id="add-form-button" class="bg-green-100 text-green-800 font-bold py-2 px-5 rounded-lg hover:bg-green-200">
+                إضافة مشروع آخر
+            </button>
+            <div class="flex gap-x-3">
+                <a href="{% url 'operations:project-list' %}" class="bg-gray-100 text-gray-800 font-bold py-2 px-5 rounded-lg hover:bg-gray-200">
+                    إلغاء
+                </a>
+                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-700">
+                    حفظ كل المشاريع
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.getElementById('add-form-button');
+    const container = document.getElementById('form-container');
+    const template = document.getElementById('form-template');
+    const totalFormsInput = document.querySelector('#id_form-TOTAL_FORMS');
+
+    addButton.addEventListener('click', function() {
+        // 1. نحصل على رقم الفورم الجديد
+        let formNum = parseInt(totalFormsInput.value);
+        
+        // 2. نستنسخ القالب
+        const newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
+        
+        // 3. نضيف الفورم الجديد إلى الجدول
+        container.insertAdjacentHTML('beforeend', newFormHtml);
+        
+        // 4. نحدّث عدد النماذج الإجمالي
+        totalFormsInput.value = formNum + 1;
+    });
+});
+</script>
+
+{% endblock page_content %}

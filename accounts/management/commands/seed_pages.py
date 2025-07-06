@@ -18,7 +18,7 @@ PAGES = [
     {'name': 'عروض الأسعار', 'url_name': 'quotes_page', 'icon_class': 'file-text', 'category': 'العمليات'},
     {'name': 'المشتريات', 'url_name': 'purchases_page', 'icon_class': 'shopping-bag', 'category': 'العمليات'},
     {'name': 'الأصناف', 'url_name': 'items_page', 'icon_class': 'package', 'category': 'العمليات'},
-
+    {'name': 'المشاريع', 'url_name': 'operations:project-list', 'icon_class': 'briefcase', 'category': 'العمليات'},
     # الفئة: المخازن
     {'name': 'المخزون', 'url_name': 'inventory_page', 'category': 'المخازن', 'icon_class': 'archive'},
 

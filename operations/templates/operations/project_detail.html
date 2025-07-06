@@ -1,0 +1,119 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}
+    {{ page_title }}
+{% endblock page_title %}
+
+{% block page_content %}
+{# الجزء العلوي: ملخص المشروع #}
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="md:col-span-3">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-semibold text-blue-600">{{ project.client.name }}</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mt-1">{{ project.name }}</h2>
+                    <p class="text-sm text-slate-500 mt-2">
+                        يبدأ في: {{ project.start_date }} | التسليم المتوقع: {{ project.due_date|default:"غير محدد" }}
+                    </p>
+                </div>
+                <div>
+                     <span class="px-3 py-1 text-sm font-semibold rounded-full 
+                        {% if project.status == 'جديد' %} bg-blue-100 text-blue-800 
+                        {% elif project.status == 'قيد التنفيذ' %} bg-yellow-100 text-yellow-800
+                        {% elif project.status == 'مكتمل' %} bg-green-100 text-green-800
+                        {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                        {{ project.status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# الجزء الجانبي: الملخص المالي #}
+    <div class="md:col-span-1 space-y-4">
+        <div class="bg-red-100 p-4 rounded-2xl text-center">
+            <p class="text-sm text-red-700 font-semibold">إجمالي التكاليف</p>
+            <p class="text-2xl font-bold text-red-900">{{ project.total_costs|floatformat:2 }} جنيه</p>
+        </div>
+        <div class="bg-green-100 p-4 rounded-2xl text-center">
+            <p class="text-sm text-green-700 font-semibold">إجمالي الدفعات</p>
+            <p class="text-2xl font-bold text-green-900">{{ project.total_payments|floatformat:2 }} جنيه</p>
+        </div>
+         <div class="bg-slate-800 text-white p-4 rounded-2xl text-center">
+            <p class="text-sm font-semibold">المتبقي</p>
+            <p class="text-2xl font-bold">{{ project.remaining_balance|floatformat:2 }} جنيه</p>
+        </div>
+    </div>
+</div>
+
+{# الجزء السفلي: إضافة وجداول التكاليف والدفعات #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+    {# قسم بنود التكاليف #}
+    <div>
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">بنود التكاليف</h3>
+            {# فورم إضافة بند تكلفة جديد (سنفعله لاحقاً) #}
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="text-center text-slate-500">فورم إضافة بند تكلفة جديد سيظهر هنا</p>
+            </div>
+            
+            <table class="w-full text-right text-sm">
+                <thead>
+                    <tr>
+                        <th class="py-2 text-slate-500">التاريخ</th>
+                        <th class="py-2 text-slate-500">البيان</th>
+                        <th class="py-2 text-slate-500">الكمية</th>
+                        <th class="py-2 text-slate-500">السعر</th>
+                        <th class="py-2 text-slate-500">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for item in cost_items %}
+                        <tr>
+                            <td class="py-2">{{ item.date }}</td>
+                            <td class="py-2 font-semibold">{{ item.description }}</td>
+                            <td class="py-2">{{ item.quantity }}</td>
+                            <td class="py-2">{{ item.unit_price|floatformat:2 }}</td>
+                            <td class="py-2 font-bold">{{ item.total_price|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center p-4 text-slate-400">لم يتم إضافة أي بنود تكلفة بعد.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# قسم الدفعات #}
+    <div>
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">الدفعات المستلمة</h3>
+            {# فورم إضافة دفعة جديدة (سنفعله لاحقاً) #}
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="text-center text-slate-500">فورم إضافة دفعة جديدة سيظهر هنا</p>
+            </div>
+            
+            <table class="w-full text-right text-sm">
+                 <thead>
+                    <tr>
+                        <th class="py-2 text-slate-500">التاريخ</th>
+                        <th class="py-2 text-slate-500">البيان</th>
+                        <th class="py-2 text-slate-500">المبلغ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for payment in payments %}
+                        <tr>
+                            <td class="py-2">{{ payment.date }}</td>
+                            <td class="py-2">{{ payment.description|default:"-" }}</td>
+                            <td class="py-2 font-bold text-green-600">{{ payment.amount|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3" class="text-center p-4 text-slate-400">لم يتم تسجيل أي دفعات بعد.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

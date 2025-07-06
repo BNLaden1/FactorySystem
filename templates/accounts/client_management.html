@@ -8,25 +8,49 @@
         <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h2 class="text-xl font-bold text-slate-800 mb-4">إضافة عميل جديد</h2>
             <form method="POST" class="space-y-4">
-                {% csrf_token %}
-                <div>
-                    <label for="name" class="block mb-2 text-sm font-medium">اسم العميل</label>
-                    <input type="text" name="name" id="name" required class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div>
-                    <label for="phone" class="block mb-2 text-sm font-medium">رقم الهاتف (اختياري)</label>
-                    <input type="text" name="phone" id="phone" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div>
-                    <label for="address" class="block mb-2 text-sm font-medium">العنوان (اختياري)</label>
-                    <input type="text" name="address" id="address" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">
-                        إضافة العميل
-                    </button>
-                </div>
-            </form>
+    {% csrf_token %}
+
+    {# هذا الكود سيعرض رسائل الخطأ أو النجاح إذا وجدت #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 text-sm rounded-lg {% if message.tags == 'success' %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {# ▼▼▼ هذا الجزء سيظهر للسوبر يوزر فقط ▼▼▼ #}
+    {% if is_superuser_view %}
+    <div>
+        <label for="company" class="block mb-2 text-sm font-medium">اختر الشركة</label>
+        <select name="company" id="company" required class="w-full px-3 py-2 border rounded-lg">
+            <option value="">-- فضلاً اختر شركة --</option>
+            {% for company in companies %}
+                <option value="{{ company.id }}">{{ company.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    {# ▲▲▲ نهاية جزء السوبر يوزر ▲▲▲ #}
+
+    <div>
+        <label for="name" class="block mb-2 text-sm font-medium">اسم العميل</label>
+        <input type="text" name="name" id="name" required class="w-full px-3 py-2 border rounded-lg">
+    </div>
+    <div>
+        <label for="phone" class="block mb-2 text-sm font-medium">رقم الهاتف (اختياري)</label>
+        <input type="text" name="phone" id="phone" class="w-full px-3 py-2 border rounded-lg">
+    </div>
+    <div>
+        <label for="address" class="block mb-2 text-sm font-medium">العنوان (اختياري)</label>
+        <input type="text" name="address" id="address" class="w-full px-3 py-2 border rounded-lg">
+    </div>
+    <div class="pt-2">
+        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">
+            إضافة العميل
+        </button>
+    </div>
+</form>
         </div>
     </div>
 
@@ -34,26 +58,32 @@
         <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h2 class="text-xl font-bold text-slate-800 mb-4">العملاء الحاليين</h2>
             <div class="overflow-y-auto max-h-96">
-                <table class="min-w-full text-right">
-                    <thead class="bg-slate-100">
-                        <tr>
-                            <th class="p-3 text-sm font-semibold">اسم العميل</th>
-                            <th class="p-3 text-sm font-semibold">الهاتف</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for client in clients %}
-                        <tr>
-                            <td class="p-3">{{ client.name }}</td>
-                            <td class="p-3 text-slate-500">{{ client.phone|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center p-6 text-gray-500">لا يوجد عملاء مضافين.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <table class="min-w-full text-right">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="p-3 text-sm font-semibold">اسم العميل</th>
+                        <th class="p-3 text-sm font-semibold">الهاتف</th>
+                        <th class="p-3 text-sm font-semibold text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for client in clients %}
+                    <tr>
+                        <td class="p-3">{{ client.name }}</td>
+                        <td class="p-3 text-slate-500">{{ client.phone|default:"-" }}</td>
+                        <td class="p-3 text-center"> <a href="#"
+                                class="bg-indigo-100 text-indigo-700 text-xs font-bold py-1 px-3 rounded-full hover:bg-indigo-200">
+                                عرض الشغلانات
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center p-6 text-gray-500">لا يوجد عملاء مضافين.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             </div>
         </div>
     </div>

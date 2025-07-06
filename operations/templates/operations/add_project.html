@@ -1,0 +1,65 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}
+    إنشاء مشروع جديد
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="bg-white p-8 rounded-2xl shadow-lg max-w-3xl mx-auto">
+
+    <div class="mb-6 border-b pb-4">
+        <h2 class="text-2xl font-bold text-slate-800">بيانات المشروع الجديد</h2>
+        <p class="text-slate-500 mt-1">أدخل التفاصيل الأساسية للمشروع ليتم إنشاؤه.</p>
+    </div>
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="space-y-5">
+            
+            <div>
+                <label for="{{ form.client.id_for_label }}" class="block mb-2 text-sm font-semibold text-gray-700">العميل</label>
+                {{ form.client }}
+                {% if form.client.errors %}
+                    <p class="mt-1 text-xs text-red-500">{{ form.client.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-semibold text-gray-700">اسم الأوردر/المشروع</label>
+                {{ form.name }}
+                 {% if form.name.errors %}
+                    <p class="mt-1 text-xs text-red-500">{{ form.name.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="{{ form.start_date.id_for_label }}" class="block mb-2 text-sm font-semibold text-gray-700">تاريخ البدء</label>
+                    {{ form.start_date }}
+                </div>
+                <div>
+                    <label for="{{ form.due_date.id_for_label }}" class="block mb-2 text-sm font-semibold text-gray-700">تاريخ التسليم المتوقع</label>
+                    {{ form.due_date }}
+                </div>
+            </div>
+
+            <div>
+                <label for="{{ form.status.id_for_label }}" class="block mb-2 text-sm font-semibold text-gray-700">حالة المشروع</label>
+                {{ form.status }}
+            </div>
+
+        </div>
+
+        <div class="mt-8 pt-5 border-t flex justify-end gap-x-3">
+            <a href="{% url 'operations:project-list' %}" class="bg-gray-100 text-gray-800 font-bold py-2 px-5 rounded-lg hover:bg-gray-200">
+                إلغاء
+            </a>
+            <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-700">
+                حفظ وإنشاء المشروع
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock page_content %}
