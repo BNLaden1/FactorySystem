@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Project
-from .forms import ProjectForm, CostItemForm
+from .forms import ProjectForm, CostItemForm, PaymentForm 
 
 # 1. دالة عرض قائمة المشاريع
 @login_required
@@ -77,33 +77,47 @@ def bulk_add_projects_view(request):
 def project_detail_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
-    # هذا الجزء سيتعامل مع الفورم عند إرسال البيانات (POST)
     if request.method == 'POST':
-        cost_form = CostItemForm(request.POST)
-        if cost_form.is_valid():
-            # لا نحفظ الفورم مباشرة، بل نجهز البيانات أولاً
-            new_cost_item = cost_form.save(commit=False)
-            # نربط بند التكلفة الجديد بالمشروع الحالي
-            new_cost_item.project = project
-            new_cost_item.save() # الآن نقوم بالحفظ
-            messages.success(request, 'تمت إضافة بند التكلفة بنجاح.')
-            # نعيد تحميل نفس الصفحة لنرى البند الجديد في الجدول
-            return redirect('operations:project-detail', project_id=project.id)
-        else:
-            messages.error(request, 'حدث خطأ في بيانات بند التكلفة.')
+        # نتحقق من نوع الفورم الذي تم إرساله
+        form_type = request.POST.get('form_type')
+
+        if form_type == 'cost_item':
+            cost_form = CostItemForm(request.POST)
+            if cost_form.is_valid():
+                new_cost_item = cost_form.save(commit=False)
+                new_cost_item.project = project
+                new_cost_item.save()
+                messages.success(request, 'تمت إضافة بند التكلفة بنجاح.')
+            else:
+                messages.error(request, 'حدث خطأ في بيانات بند التكلفة.')
+
+        elif form_type == 'payment':
+            payment_form = PaymentForm(request.POST)
+            if payment_form.is_valid():
+                new_payment = payment_form.save(commit=False)
+                new_payment.project = project
+                new_payment.save()
+                messages.success(request, 'تمت إضافة الدفعة بنجاح.')
+            else:
+                messages.error(request, 'حدث خطأ في بيانات الدفعة.')
+        
+        # في كل الحالات، نعيد تحميل نفس الصفحة
+        return redirect('operations:project-detail', project_id=project.id)
     
-    # هذا الجزء يعمل دائماً، سواء كان الطلب GET أو POST فاشل
+    # هذا الجزء يعمل دائماً، في حالة فتح الصفحة لأول مرة (GET)
     cost_items = project.cost_items.all().order_by('-date')
     payments = project.payments.all().order_by('-date')
     
-    # ننشئ فورم فارغ لعرضه في الصفحة
+    # ننشئ فورمات فارغة لعرضها في الصفحة
     cost_form = CostItemForm()
+    payment_form = PaymentForm()
 
     context = {
         'project': project,
         'cost_items': cost_items,
         'payments': payments,
-        'cost_form': cost_form, # <<< نرسل الفورم الفارغ للواجهة
+        'cost_form': cost_form,
+        'payment_form': payment_form, # <<< نرسل فورم الدفعات للواجهة
         'page_title': f"تفاصيل مشروع: {project.name}"
     }
 

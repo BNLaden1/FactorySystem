@@ -124,9 +124,40 @@
         <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h3 class="text-xl font-bold text-slate-800 mb-4">الدفعات المستلمة</h3>
             {# فورم إضافة دفعة جديدة (سنفعله لاحقاً) #}
-            <div class="bg-slate-50 p-4 rounded-lg mb-4">
-                <p class="text-center text-slate-500">فورم إضافة دفعة جديدة سيظهر هنا</p>
+            {# ▼▼▼ هذا هو الفورم الجديد لإضافة دفعة ▼▼▼ #}
+<form method="POST" class="bg-slate-50 p-4 rounded-lg mb-4 border border-slate-200">
+    {% csrf_token %}
+    {# هذا الحقل المخفي مهم جداً ليعرف الـ View أي فورم تم إرساله #}
+    <input type="hidden" name="form_type" value="payment">
+
+    <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {# حقل التاريخ #}
+            <div>
+                <label for="{{ payment_form.date.id_for_label }}" class="block mb-1 text-xs font-medium text-gray-600">التاريخ</label>
+                {{ payment_form.date }}
             </div>
+             {# حقل المبلغ #}
+            <div>
+                <label for="{{ payment_form.amount.id_for_label }}" class="block mb-1 text-xs font-medium text-gray-600">المبلغ</label>
+                {{ payment_form.amount }}
+            </div>
+        </div>
+        {# حقل البيان #}
+        <div>
+            <label for="{{ payment_form.description.id_for_label }}" class="block mb-1 text-xs font-medium text-gray-600">البيان</label>
+            {{ payment_form.description }}
+        </div>
+         {# زر الحفظ #}
+        <div>
+            <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">
+                 <i data-lucide="plus" class="inline-block w-4 h-4 ml-1"></i>
+                إضافة الدفعة
+            </button>
+        </div>
+    </div>
+</form>
+{# ▲▲▲ نهاية الفورم الجديد ▲▲▲ #}
             
             <table class="w-full text-right text-sm">
                  <thead>

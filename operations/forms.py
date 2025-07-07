@@ -1,9 +1,9 @@
 # operations/forms.py
 
 from django import forms
-from .models import Project  # نستدعي النموذج الجديد
+from .models import Project, CostItem, Payment # نستدعي النموذج الجديد
 from accounts.models import Client
-from .models import Project, CostItem
+
 
 class ProjectForm(forms.ModelForm):
     # هذا السطر مهم لجلب العملاء من قاعدة البيانات وعرضهم في قائمة منسدلة
@@ -72,5 +72,30 @@ class CostItemForm(forms.ModelForm):
             }),
             'unit_price': forms.NumberInput(attrs={
                 'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500'
+            }),
+        }
+
+        # operations/forms.py
+
+
+# ▼▼▼ أضف هذا الكلاس الجديد في نهاية الملف ▼▼▼
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        # نحدد الحقول التي نريدها أن تظهر في الفورم
+        fields = ['date', 'amount', 'description']
+
+        # نضيف تنسيقات Tailwind CSS للفورم
+        widgets = {
+            'date': forms.DateInput(attrs={
+                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500',
+                'type': 'date'
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500'
+            }),
+            'description': forms.TextInput(attrs={
+                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500',
+                'placeholder': 'مثال: دفعة تحت الحساب'
             }),
         }
