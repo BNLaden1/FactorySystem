@@ -1,0 +1,65 @@
+{% extends 'accounts/base.html' %}
+
+{% block page_title %}
+    إدارة أنواع التكاليف
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    {# الجزء الأيمن: فورم إضافة نوع جديد #}
+    <div class="md:col-span-1">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">إضافة نوع جديد</h2>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="name" class="block mb-2 text-sm font-medium text-gray-700">اسم النوع</label>
+                    <input type="text" name="name" id="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="مثال: خشب زان، نقل...">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">
+                        <i data-lucide="plus" class="inline-block w-4 h-4 ml-1"></i>
+                        إضافة النوع
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# الجزء الأيسر: جدول عرض الأنواع الحالية #}
+    <div class="md:col-span-2">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">الأنواع الحالية</h2>
+            <div class="overflow-y-auto max-h-96">
+            <table class="min-w-full text-right">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="p-3 text-sm font-semibold text-slate-600">اسم النوع</th>
+                        <th class="p-3 text-sm font-semibold text-slate-600 text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for type in cost_types %}
+                    <tr>
+                        <td class="p-3 font-semibold">{{ type.name }}</td>
+                        <td class="p-3 text-center">
+                            {# سنضيف أزرار التعديل والحذف هنا لاحقاً #}
+                            <a href="#" class="text-blue-500 hover:text-blue-700 inline-block mx-1"><i data-lucide="edit" class="w-4 h-4"></i></a>
+                            <a href="#" class="text-red-500 hover:text-red-700 inline-block mx-1"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center p-6 text-gray-500">لم تقم بإضافة أي أنواع تكاليف بعد.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

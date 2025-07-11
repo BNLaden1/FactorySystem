@@ -52,5 +52,4 @@ urlpatterns = [
     path('settings-dashboard/', views.settings_dashboard_view, name='settings_dashboard'),
     path('reports/profit-loss/', views.profit_loss_report_view, name='profit_loss_report'),
     path('reports/client-debts/', views.client_debts_report_view, name='client_debts_report'),
-
 ]

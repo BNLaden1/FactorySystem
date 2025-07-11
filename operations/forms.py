@@ -1,8 +1,9 @@
 # operations/forms.py
 
 from django import forms
-from .models import Project, CostItem, Payment # نستدعي النموذج الجديد
+from .models import Project, CostItem, Payment, CostType
 from accounts.models import Client
+import datetime
 
 
 class ProjectForm(forms.ModelForm):
@@ -52,31 +53,21 @@ class ProjectForm(forms.ModelForm):
 
 # ▼▼▼ أضف هذا الكلاس الجديد في نهاية الملف ▼▼▼
 class CostItemForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CostItemForm, self).__init__(*args, **kwargs)
+        # ▼▼▼ هذا هو السطر الذي يضع تاريخ اليوم تلقائياً ▼▼▼
+        self.fields['date'].initial = datetime.date.today()
+
     class Meta:
         model = CostItem
-        # نحدد الحقول التي نريدها أن تظهر في الفورم
-        fields = ['date', 'description', 'quantity', 'unit_price']
-
-        # نضيف تنسيقات Tailwind CSS للفورم
+        fields = ['date', 'type', 'description', 'quantity', 'unit_price']
         widgets = {
-            'date': forms.DateInput(attrs={
-                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500',
-                'type': 'date'
-            }),
-            'description': forms.TextInput(attrs={
-                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500',
-                'placeholder': 'مثال: لوح خشب، أجرة نقل...'
-            }),
-            'quantity': forms.NumberInput(attrs={
-                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500'
-            }),
-            'unit_price': forms.NumberInput(attrs={
-                'class': 'block w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500'
-            }),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full p-2 border rounded-lg text-sm'}),
+            'type': forms.Select(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
+            'description': forms.TextInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm', 'placeholder': 'اكتب بياناً...'}),
+            'quantity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
+            'unit_price': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
         }
-
-        # operations/forms.py
-
 
 # ▼▼▼ أضف هذا الكلاس الجديد في نهاية الملف ▼▼▼
 class PaymentForm(forms.ModelForm):
