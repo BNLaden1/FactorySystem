@@ -58,49 +58,66 @@ def bulk_add_projects_view(request):
 # 4. دالة تفاصيل المشروع
 @login_required
 def project_detail_view(request, project_id):
+    """
+    يعرض تفاصيل مشروع واحد ويتعامل مع إضافة وتعديل بنود التكاليف والدفعات.
+    - يستخدم inlineformset_factory للتعامل مع بنود التكاليف.
+    - يضيف حقل هامش الربح لكل بند.
+    """
     project = get_object_or_404(Project, id=project_id)
 
-    # هذا الجزء الآن يتعامل فقط مع فورم إضافة "بند تكلفة" جديد
-    if request.method == 'POST':
-        # نتحقق إذا كان المستخدم يضيف بند تكلفة
-        if 'save_cost_item' in request.POST:
-            cost_form = CostItemForm(request.POST)
-            if cost_form.is_valid():
-                new_item = cost_form.save(commit=False)
-                new_item.project = project
-                new_item.save()
-                messages.success(request, 'تمت إضافة بند التكلفة بنجاح.')
-            else:
-                # الآن سنعرض الأخطاء المحددة
-                for field, errors in cost_form.errors.items():
-                    for error in errors:
-                        messages.error(request, f"خطأ في حقل '{cost_form.fields[field].label}': {error}")
+    # 1. إعداد الـ Formset لبنود التكاليف
+    # ====================================
+    CostItemFormSet = inlineformset_factory(
+        Project, 
+        CostItem, 
+        form=CostItemForm, 
+        # الحقول التي ستظهر في الفورم، بما في ذلك حقل الربح الجديد
+        fields=['date', 'type', 'description', 'quantity', 'unit_price', 'profit_margin'],
+        extra=1,          # ابدأ بصف واحد فارغ دائمًا
+        can_delete=False  # منع الحذف لأننا استبدلناه بالربح
+    )
 
-        # أو إذا كان يضيف دفعة
+    # 2. معالجة طلبات POST (حفظ البيانات)
+    # ===================================
+    if request.method == 'POST':
+        # أ. في حالة حفظ بنود التكاليف
+        if 'save_cost_item' in request.POST:
+            # نمرر 'prefix' لربط الفورم بالجافاسكريبت بشكل صحيح
+            cost_formset = CostItemFormSet(request.POST, instance=project, prefix='costs')
+            if cost_formset.is_valid():
+                cost_formset.save()
+                messages.success(request, '✅ تم حفظ بنود التكاليف بنجاح.')
+            else:
+                # عرض الأخطاء للمستخدم في حالة عدم صحة البيانات
+                error_list = [f"<li>{field}: {err[0]}</li>" for field, err in cost_formset.errors[0].items()]
+                messages.error(request, f"حدث خطأ. يرجى مراجعة البيانات التالية: <ul>{''.join(error_list)}</ul>")
+
+        # ب. في حالة حفظ دفعة جديدة
         elif 'save_payment' in request.POST:
             payment_form = PaymentForm(request.POST)
             if payment_form.is_valid():
                 new_payment = payment_form.save(commit=False)
                 new_payment.project = project
                 new_payment.save()
-                messages.success(request, 'تمت إضافة الدفعة بنجاح.')
+                messages.success(request, '💰 تمت إضافة الدفعة بنجاح.')
             else:
-                messages.error(request, 'حدث خطأ في بيانات الدفعة.')
-
+                messages.error(request, 'حدث خطأ في بيانات الدفعة، يرجى المحاولة مرة أخرى.')
+        
+        # إعادة توجيه المستخدم لنفس الصفحة لتجنب إعادة إرسال الفورم
         return redirect('operations:project-detail', project_id=project.id)
 
-    # نجهز البيانات لعرضها في الصفحة
-    cost_form = CostItemForm()
+    # 3. تجهيز البيانات لعرضها في الصفحة (طلبات GET)
+    # ===============================================
+    # نمرر 'prefix' هنا أيضًا لضمان عرض الفورم بشكل صحيح
+    cost_formset = CostItemFormSet(instance=project, prefix='costs')
     payment_form = PaymentForm()
-    cost_items = project.cost_items.all().order_by('date')
     payments = project.payments.all().order_by('-date')
     other_projects = Project.objects.filter(client=project.client).exclude(id=project.id).order_by('-start_date')
     quick_access_projects = other_projects.filter(status='قيد التنفيذ')[:4]
 
     context = {
         'project': project,
-        'cost_form': cost_form,
-        'cost_items': cost_items,
+        'cost_formset': cost_formset, # <-- تم تمرير الـ Formset للقالب
         'payments': payments,
         'payment_form': payment_form,
         'other_projects': other_projects,

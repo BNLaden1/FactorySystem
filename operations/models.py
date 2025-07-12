@@ -22,6 +22,16 @@ class Project(models.Model):
     due_date = models.DateField(blank=True, null=True, verbose_name="تاريخ التسليم المتوقع")
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='جديد', verbose_name="الحالة")
 
+    def total_contract_value(self):
+        """يحسب إجمالي قيمة العقد (التكلفة + هامش الربح)"""
+        total = self.cost_items.aggregate(
+            total=Sum(
+                F('quantity') * (F('unit_price') + F('profit_margin')),
+                output_field=models.DecimalField()
+            )
+        )['total']
+        return total or 0
+    
 
     def total_costs(self):
 
@@ -63,16 +73,19 @@ class CostType(models.Model):
 # ===================================================================
 class CostItem(models.Model):
     project = models.ForeignKey(Project, related_name='cost_items', on_delete=models.CASCADE, verbose_name="المشروع")
-    # تم تغيير هذا الحقل ليقرأ من النموذج الجديد "CostType"
     type = models.ForeignKey(CostType, on_delete=models.PROTECT, verbose_name="النوع")
     date = models.DateField(verbose_name="التاريخ")
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name="البيان")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1, verbose_name="الكمية")
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="سعر الوحدة")
+    
+    # ▼▼▼ هذا هو السطر المفقود الذي سبب المشكلة ▼▼▼
+    profit_margin = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="هامش الربح")
 
     @property
     def total_price(self):
-        return self.quantity * self.unit_price
+        # الإجمالي الآن سيشمل الربح
+        return self.quantity * (self.unit_price + self.profit_margin)
 
     class Meta:
         verbose_name = "بند تكلفة"

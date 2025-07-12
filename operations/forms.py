@@ -60,13 +60,16 @@ class CostItemForm(forms.ModelForm):
 
     class Meta:
         model = CostItem
-        fields = ['date', 'type', 'description', 'quantity', 'unit_price']
+        # ▼▼▼ أضفنا الحقل الجديد هنا ▼▼▼
+        fields = ['date', 'type', 'description', 'quantity', 'unit_price', 'profit_margin']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full p-2 border rounded-lg text-sm'}),
             'type': forms.Select(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
             'description': forms.TextInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm', 'placeholder': 'اكتب بياناً...'}),
             'quantity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
             'unit_price': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm'}),
+            # ▼▼▼ وأضفنا تنسيقه هنا ▼▼▼
+            'profit_margin': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded-lg text-sm', 'placeholder': '0.00'}),
         }
 
 # ▼▼▼ أضف هذا الكلاس الجديد في نهاية الملف ▼▼▼
